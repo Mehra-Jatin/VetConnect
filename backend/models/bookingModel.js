@@ -24,6 +24,10 @@ const bookingSchema = mongoose.Schema(
     paymentId: {
       type: String,
     },
+    razorpayOrderId: {
+      type: String,
+      required: true,
+    },
     paymentStatus: {
       type: String,
       enum: ["Pending", "Completed", "Failed"],

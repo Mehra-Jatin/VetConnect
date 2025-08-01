@@ -65,6 +65,10 @@ const doctorSchema = mongoose.Schema(
       type: Number,
         default: 0,
     },
+    razorpayLinkedAccountId: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,
