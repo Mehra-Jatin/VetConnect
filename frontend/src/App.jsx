@@ -1,28 +1,32 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Auth/Login.jsx';
 import Register from './pages/Auth/Register.jsx';
 import DoctorProfile from './pages/DoctorProfile.jsx';
 import PatientProfile from './pages/PatientProfile.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
-import Home from './pages/Home.jsx'; 
+import Home from './pages/public/Home.jsx'; 
+import Doctor from './pages/public/Doctor.jsx';
+import Layout from './components/Layout.jsx';
 
 export default function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/auth/login" element={<Login />} />
-                <Route path="/auth/register" element={<Register />} />
+  return (
+    <Router>
+      <Routes>
+        {/* Auth pages without layout */}
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/register" element={<Register />} />
 
-                {/* After login redirects */}
-                <Route path="/doctor-profile" element={<DoctorProfile />} />
-                <Route path="/profile" element={<PatientProfile />} />
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        {/* Pages with Navbar & Footer */}
+        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/doctor" element={<Layout><Doctor /></Layout>} />
+        <Route path="/doctor-profile" element={<Layout><DoctorProfile /></Layout>} />
+        <Route path="/profile" element={<Layout><PatientProfile /></Layout>} />
+        <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
 
-                {/* 404 fallback route */}
-                <Route path="*" element={<div className="text-center mt-10 text-red-500 text-xl">404 - Page Not Found</div>} />
-            </Routes>
-        </Router>
-    );
+        {/* 404 fallback route */}
+        <Route path="*" element={<div className="text-center mt-10 text-red-500 text-xl">404 - Page Not Found</div>} />
+      </Routes>
+    </Router>
+  );
 }
