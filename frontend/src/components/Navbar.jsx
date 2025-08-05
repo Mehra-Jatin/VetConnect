@@ -1,16 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import useAuthStore from '@/store/useAuthStore'; // Adjust path based on your folder structure
+import {
+  ChevronDown,
+  ChevronRight,
+  User,
+  History,
+  LogOut,
+  Settings,
+  MessageSquareText,
+  CalendarCheck,
+} from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
+
+  // Simulated logged-in user
   const user = {
     id: 1,
-    name: 'John Doe',
-    role: 'doctor', // or 'patient', 'admin'
+    name: 'JATIN',
+    role: 'doctor', // change to 'patient' or null
   };
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [chatSubmenuOpen, setChatSubmenuOpen] = useState(false);
+
   const handleLogout = () => {
+    setDropdownOpen(false);
+    setChatSubmenuOpen(false);
     navigate('/');
   };
 
@@ -22,8 +38,15 @@ const Navbar = () => {
           MediConnect
         </Link>
 
-        {/* Right Menu */}
-        <div className="flex items-center gap-6">
+        {/* Right Side */}
+        <div className="flex items-center gap-6 relative">
+          <Link to="/doctor" className="text-gray-700 hover:text-orange-600">
+            Doctors
+          </Link>
+          <Link to="/about" className="text-gray-700 hover:text-orange-600">
+            About Us
+          </Link>
+
           {!user ? (
             <button
               onClick={() => navigate('/auth/login')}
@@ -32,42 +55,161 @@ const Navbar = () => {
               Login
             </button>
           ) : (
-            <>
-              {/* Doctor Menu */}
-              {user.role === 'doctor' ? (
-                <>
-                  <Link to="/doctor/chats" className="text-gray-700 hover:text-orange-600">
-                    Chats
-                  </Link>
-                  <Link to="/doctor/bookings" className="text-gray-700 hover:text-orange-600">
-                    Bookings
-                  </Link>
-                  <Link to="/doctor-profile" className="text-gray-700 hover:text-orange-600">
-                    Profile
-                  </Link>
-                </>
-              ) : (
-                /* User Menu */
-                <>
-                  <Link to="/doctor" className="text-gray-700 hover:text-orange-600">
-                    Find Doctors
-                  </Link>
-                  <Link to="/user/appointments" className="text-gray-700 hover:text-orange-600">
-                    My Appointments
-                  </Link>
-                  <Link to="/profile" className="text-gray-700 hover:text-orange-600">
-                    Profile
-                  </Link>
-                </>
-              )}
-
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                className="ml-4 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                onClick={() => {
+                  setDropdownOpen((prev) => !prev);
+                  setChatSubmenuOpen(false);
+                }}
+                className="flex items-center gap-1 px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-800"
               >
-                Logout
+                <User size={18} /> {user.name} <ChevronDown size={16} />
               </button>
-            </>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white border shadow-lg rounded-lg z-50">
+                  <div className="px-4 py-2 border-b text-sm text-gray-600 font-semibold">
+                    My Account
+                  </div>
+
+                  <div className="py-2">
+                    {/* Profile */}
+
+
+
+                        {user.role === 'patient' && (
+                      <Link
+                        to="/user/profile"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                      <User size={16} /> Profile
+                    </Link>
+                    )}
+  
+                    {user.role === 'doctor' && (
+                      <Link
+                        to="/doctor/profile"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <User size={16} /> Profile
+                      </Link>
+                    )}
+
+
+                   
+                
+
+                
+
+                    {user.role === 'patient' && (
+                      <Link
+                        to="/user/chats"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <MessageSquareText size={16} /> My Chats
+                      </Link>
+                    )}
+
+                    {user.role === 'doctor' && (
+                      <>
+                        {/* Chats with embedded submenu */}
+                        <div>
+                          <button
+                            onClick={() => setChatSubmenuOpen(!chatSubmenuOpen)}
+                            className="w-full flex items-center justify-between px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                          >
+                            <span className="flex items-center gap-2">
+                              <MessageSquareText size={16} /> Chats
+                            </span>
+                            <ChevronRight size={16} />
+                          </button>
+
+                          {chatSubmenuOpen && (
+                            <div className="pl-10 pr-4 space-y-1 py-1 text-sm text-gray-700">
+                              <Link
+                                to="/doctor/chats/admin"
+                                onClick={() => setDropdownOpen(false)}
+                                className="block hover:text-orange-600"
+                              >
+                                Admin Chat
+                              </Link>
+                              <Link
+                                to="/doctor/chats/patient"
+                                onClick={() => setDropdownOpen(false)}
+                                className="block hover:text-orange-600"
+                              >
+                                Patient Chat
+                              </Link>
+                              <Link
+                                to="/doctor/chats/doctor"
+                                onClick={() => setDropdownOpen(false)}
+                                className="block hover:text-orange-600"
+                              >
+                                Doctor Chat
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Appointments (only for doctor) */}
+                        <Link
+                          to="/doctor/appointments"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <CalendarCheck size={16} /> Appointments
+                        </Link>
+                      </>
+                    )}
+
+                    {/* Patient-only history */}
+                    {user.role === 'patient' && (
+                      <Link
+                        to="/user/history"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <History size={16} /> My History
+                      </Link>
+                    )}
+
+                    {/* Settings */}
+                    {user.role === 'patient' && (
+                      <Link
+                        to="/user/settings"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <Settings size={16} /> Settings
+                      </Link>
+                    )}
+
+                    {/* Doctor Settings */}
+                    {user.role === 'doctor' && (
+                      <Link
+                        to="/doctor/settings"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        <Settings size={16} /> Settings
+                      </Link>
+                    )}
+
+
+                    {/* Logout */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
+                    >
+                      <LogOut size={16} /> Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

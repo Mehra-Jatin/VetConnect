@@ -8,6 +8,8 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import Home from './pages/public/Home.jsx'; 
 import Doctor from './pages/public/Doctor.jsx';
 import Layout from './components/Layout.jsx';
+import AboutUs from './pages/public/AboutUs.jsx';
+import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx';
 
 export default function App() {
   return (
@@ -16,11 +18,15 @@ export default function App() {
         {/* Auth pages without layout */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
-
+ 
         {/* Pages with Navbar & Footer */}
         <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/about" element={<Layout><AboutUs /></Layout>} />
+        
+        {/* Doctor and Profile pages */}
         <Route path="/doctor" element={<Layout><Doctor /></Layout>} />
         <Route path="/doctor-profile" element={<Layout><DoctorProfile /></Layout>} />
+        <Route path="/doctor/appointments" element={<Layout><DoctorAppointments /></Layout>} />
         <Route path="/profile" element={<Layout><PatientProfile /></Layout>} />
         <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
 
