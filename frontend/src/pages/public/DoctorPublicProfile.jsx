@@ -6,6 +6,8 @@ import DoctorDetails from "../Doctor/components/DoctorDetails.jsx";
 import AppointmentForm from "./components/AppointmentForm.jsx";
 import DoctorReviews from "../Doctor/components/DoctorReviews.jsx";
 import ReviewForm from "./components/ReviewForm.jsx";
+import Doctor from "./Doctor.jsx";
+import DoctorSkeleton from "../Doctor/components/DoctorSkeleton.jsx";
 
 
 
@@ -62,7 +64,7 @@ const DoctorPublicProfile = () => {
   }, [id]);
 
   if (loading) {
-    return <p className="text-center py-10 text-gray-500">Loading...</p>;
+    return <p className="max-w-6xl mx-auto space-y-8"><DoctorSkeleton /></p>;
   }
 
 return (

@@ -18,7 +18,7 @@ const Navbar = () => {
   const user = {
     id: 1,
     name: 'JATIN',
-    role: 'doctor', // change to 'patient' or null
+    role: 'patient', // change to 'patient' or null
   };
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -76,16 +76,6 @@ const Navbar = () => {
                     {/* Profile */}
 
 
-
-                        {user.role === 'patient' && (
-                      <Link
-                        to="/user/profile"
-                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 text-gray-800"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                      <User size={16} /> Profile
-                    </Link>
-                    )}
   
                     {user.role === 'doctor' && (
                       <Link

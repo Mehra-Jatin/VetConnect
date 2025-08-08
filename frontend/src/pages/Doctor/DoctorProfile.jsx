@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import DoctorDetails from "./components/DoctorDetails";
-import DoctorReviews from "./components/DoctorReviews";
+import DoctorDetails from "./components/DoctorDetails.jsx";
+import DoctorReviews from "./components/DoctorReviews.jsx";
+import DoctorSkeleton from "./components/DoctorSkeleton.jsx";
 
 // Dummy data (replace with API later)
 const dummyDoctor = {
@@ -56,7 +57,7 @@ const DoctorFullProfile = () => {
   }, [id]);
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-500">Loading...</div>;
+    return <div className="max-w-6xl mx-auto"><DoctorSkeleton /></div>;
   }
 
   return (

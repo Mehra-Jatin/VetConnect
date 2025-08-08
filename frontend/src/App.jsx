@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Auth/Login.jsx';
 import Register from './pages/Auth/Register.jsx';
-import PatientProfile from './pages/PatientProfile.jsx';
+
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import Home from './pages/public/Home.jsx'; 
 import Doctor from './pages/public/Doctor.jsx';
@@ -12,6 +12,10 @@ import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx';
 import DoctorProfile from './pages/Doctor/DoctorProfile.jsx';
 import DoctorSettings from './pages/Doctor/DoctorSettings.jsx';
 import DoctorPublicProfile from './pages/public/DoctorPublicProfile.jsx';
+
+import UserSettings from './pages/User/UserSettings.jsx';
+import NotFound from './components/NotFound.jsx';
+import UserAppointments from './pages/User/UserAppointents.jsx';
 export default function App() {
   return (
     <Router>
@@ -30,11 +34,17 @@ export default function App() {
         <Route path="/doctor/appointments" element={<Layout><DoctorAppointments /></Layout>} />
         <Route path="/doctor/settings" element={<Layout><DoctorSettings /></Layout>} />
             <Route path="/doctor/:id" element={<Layout><DoctorPublicProfile /></Layout>} />
-        <Route path="/profile" element={<Layout><PatientProfile /></Layout>} />
+
+
         <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
 
+
+        {/* User Profile */}
+        <Route path="/user/settings" element={<Layout><UserSettings /></Layout>} />
+        <Route path="/user/history" element={<Layout><UserAppointments /></Layout>} />
+
         {/* 404 fallback route */}
-        <Route path="*" element={<div className="text-center mt-10 text-red-500 text-xl">404 - Page Not Found</div>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
