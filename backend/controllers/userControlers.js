@@ -150,13 +150,12 @@ export const verifyPayment = async (req, res) => {
     } else {
       // Payment failed — clear appointment info
       booking.paymentStatus = "Failed";
-      booking.paymentId = null;
+       booking.paymentId = razorpayPaymentId;
 
-      booking.date = null;
-      booking.dayOfWeek = "N/A";
-      booking.dateOnly = "0000-00-00";
-      booking.timeOnly = "N/A";
-
+      booking.date = now;
+      booking.dayOfWeek = dayOfWeek;
+      booking.dateOnly = dateOnly;
+      booking.timeOnly = timeOnly;
       booking.completionDate = null;
       booking.completionDayOfWeek = "N/A";
       booking.completionDateOnly = "0000-00-00";
