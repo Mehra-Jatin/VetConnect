@@ -11,7 +11,7 @@ const doctorSchema = mongoose.Schema(
       type: String,
       default: '',
     },
-    Image: {
+    image: {
       type: String,
       default: '',
     },
@@ -45,7 +45,7 @@ const doctorSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    PhoneNo: {
+    phoneNo: {
       type: Number,
       required: true,
     },
@@ -69,6 +69,11 @@ const doctorSchema = mongoose.Schema(
       type: String,
       default: '',
     },
+     description: { 
+      type: String, 
+      default: '' }
+      ,
+
   },
   {
     timestamps: true,
