@@ -10,7 +10,8 @@ import Layout from './components/Layout.jsx';
 import AboutUs from './pages/public/AboutUs.jsx';
 import DoctorAppointments from './pages/Doctor/DoctorAppointments.jsx';
 import DoctorProfile from './pages/Doctor/DoctorProfile.jsx';
-
+import DoctorSettings from './pages/Doctor/DoctorSettings.jsx';
+import DoctorPublicProfile from './pages/public/DoctorPublicProfile.jsx';
 export default function App() {
   return (
     <Router>
@@ -27,6 +28,8 @@ export default function App() {
         <Route path="/doctor" element={<Layout><Doctor /></Layout>} />
         <Route path="/doctor/profile" element={<Layout><DoctorProfile /></Layout>} />
         <Route path="/doctor/appointments" element={<Layout><DoctorAppointments /></Layout>} />
+        <Route path="/doctor/settings" element={<Layout><DoctorSettings /></Layout>} />
+            <Route path="/doctor/:id" element={<Layout><DoctorPublicProfile /></Layout>} />
         <Route path="/profile" element={<Layout><PatientProfile /></Layout>} />
         <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
 

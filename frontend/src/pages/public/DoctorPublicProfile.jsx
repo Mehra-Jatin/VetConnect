@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import DoctorDetails from "./components/DoctorDetails";
-import DoctorReviews from "./components/DoctorReviews";
 
-// Dummy data (replace with API later)
-const dummyDoctor = {
+
+import DoctorDetails from "../Doctor/components/DoctorDetails.jsx";
+import AppointmentForm from "./components/AppointmentForm.jsx";
+import DoctorReviews from "../Doctor/components/DoctorReviews.jsx";
+import ReviewForm from "./components/ReviewForm.jsx";
+
+
+
+export const dummyDoctor = {
   _id: "doc1",
   FirstName: "Dr. Radhika",
   LastName: "Sharma",
@@ -23,7 +28,7 @@ const dummyDoctor = {
     "Dr. Radhika Sharma is an experienced Pediatrician dedicated to child healthcare for over 15 years. She specializes in newborn care, vaccinations, and adolescent health.",
 };
 
-const dummyReviews = [
+export const dummyReviews = [
   {
     _id: "rev1",
     userId: { FirstName: "Ravi", LastName: "Verma" },
@@ -40,33 +45,51 @@ const dummyReviews = [
   },
 ];
 
-const DoctorFullProfile = () => {
+
+const DoctorPublicProfile = () => {
   const { id } = useParams();
   const [doctor, setDoctor] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API
+    // Simulated API fetch
     setTimeout(() => {
       setDoctor(dummyDoctor);
       setReviews(dummyReviews);
       setLoading(false);
-    }, 800);
+    }, 600);
   }, [id]);
 
   if (loading) {
-    return <div className="text-center py-20 text-gray-500">Loading...</div>;
+    return <p className="text-center py-10 text-gray-500">Loading...</p>;
   }
 
-  return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <DoctorDetails doctor={doctor} />
-        <DoctorReviews reviews={reviews} />
+return (
+  <div className="bg-gray-50 min-h-screen py-10 px-4">
+    <div className="max-w-6xl mx-auto space-y-8">
+      
+      {/* Doctor Info + Appointment Form */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:w-3/4">
+          <DoctorDetails doctor={doctor} />
+        </div>
+        <div className="lg:w-1/4">
+          <AppointmentForm doctor={doctor} />
+        </div>
       </div>
+
+      {/* Reviews Section */}
+      <div className="bg-white shadow rounded-lg p-6 space-y-6">
+        <ReviewForm doctorId={doctor._id} />
+        <DoctorReviews reviews={reviews} />
+      
+      </div>
+
     </div>
-  );
+  </div>
+);
+
 };
 
-export default DoctorFullProfile;
+export default DoctorPublicProfile;
