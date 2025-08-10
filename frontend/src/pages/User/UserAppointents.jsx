@@ -13,10 +13,10 @@ const dummyUserAppointments = [
       PhoneNo: "9876543210",
       specialization: "Cardiologist",
     },
-    dateOnly: "2025-08-07",
+    dateOnly: "2025-08-10",
     timeOnly: "10:00 AM",
     dayOfWeek: "Friday",
-    completionDateOnly: "2025-08-09",
+    completionDateOnly: "2025-08-12",
     completionTimeOnly: "10:00 AM",
     completionDayOfWeek: "Sunday",
     monthName: "August",
@@ -261,7 +261,7 @@ const UserAppointments = () => {
                       </button>
                     ) : (
                       <button
-                        onClick={() => navigate(`/chat/doctor/${doc._id}`)}
+                        onClick={() => navigate(`/user/chats/${doc._id}`)}
                         className="text-sm text-white bg-orange-500 px-4 py-2 rounded hover:bg-orange-600 flex items-center gap-1"
                       >
                         <MessageSquare size={16} /> Chat

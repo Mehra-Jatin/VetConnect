@@ -16,6 +16,9 @@ import DoctorPublicProfile from './pages/public/DoctorPublicProfile.jsx';
 import UserSettings from './pages/User/UserSettings.jsx';
 import NotFound from './components/NotFound.jsx';
 import UserAppointments from './pages/User/UserAppointents.jsx';
+
+import UserChat from './pages/User/UserChat.jsx';
+
 export default function App() {
   return (
     <Router>
@@ -42,6 +45,7 @@ export default function App() {
         {/* User Profile */}
         <Route path="/user/settings" element={<Layout><UserSettings /></Layout>} />
         <Route path="/user/history" element={<Layout><UserAppointments /></Layout>} />
+        <Route path="/user/chats/*" element={<Layout><UserChat /></Layout>} />
 
         {/* 404 fallback route */}
         <Route path="*" element={<NotFound />} />
