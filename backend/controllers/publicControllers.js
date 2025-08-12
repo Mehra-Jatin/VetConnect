@@ -5,7 +5,7 @@ import Rating from "../models/ratingModel.js";
 
 export const getDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find();
+        const doctors = await Doctor.find().select("-password");
         return res.status(200).json(doctors);
     } catch (error) {
         console.error("Error fetching doctors:", error);
@@ -16,7 +16,7 @@ export const getDoctors = async (req, res) => {
 export const getDoctorById = async (req, res) => {
     const doctorId = req.params.id;
     try {
-        const doctor = await Doctor.findById(doctorId);
+        const doctor = await Doctor.findById(doctorId).select("-password");
         if (!doctor) {
             return res.status(404).json({ message: "Doctor not found" });
         }

@@ -61,8 +61,8 @@ export const createRazorpayLinkedAccount = async (req, res) => {
             },
             {
                 auth: {
-                    username: process.env.RAZORPAY_KEY_ID,
-                    password: process.env.RAZORPAY_KEY_SECRET,
+                    username: process.env.RAZORPAY_API_KEY,
+                    password: process.env.RAZORPAY_API_SECRET,
                 },
             }
         );

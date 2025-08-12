@@ -103,9 +103,10 @@ export const login = async (req, res) => {
     }
 
     // Find user or doctor by email
-    let user = await User.findOne({ email }).select("+password");
+    let user = await User.findOne({ email });
     if (!user) {
-      user = await Doctor.findOne({ email }).select("+password");
+      user = await Doctor.findOne({ email });
+
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -122,6 +123,7 @@ export const login = async (req, res) => {
         message: "Invalid credentials.",
       });
     }
+
    
     // Generate JWT token
     const token = jwt.sign(
@@ -166,7 +168,7 @@ export const logout = (req, res) => {
 
 
 export const getProfile = async (req, res) => {
-    const id = req.userId;
+    const id = req.user.id;
 
     try {
         let user;

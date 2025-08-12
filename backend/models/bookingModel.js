@@ -1,7 +1,17 @@
+import mongoose from "mongoose";
+
 const bookingSchema = mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor", required: true },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true,
+    },
 
     date: { type: Date, required: true, default: Date.now },
     dayOfWeek: { type: String },
@@ -13,7 +23,7 @@ const bookingSchema = mongoose.Schema(
     completionDateOnly: { type: String },
     completionTimeOnly: { type: String },
 
-    monthName: { type: String }, 
+    monthName: { type: String },
 
     amount: { type: Number, default: 0 },
     paymentId: { type: String },

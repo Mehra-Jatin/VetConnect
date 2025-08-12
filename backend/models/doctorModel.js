@@ -45,7 +45,7 @@ const doctorSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    phoneNo: {
+    PhoneNo: {
       type: Number,
       required: true,
     },
