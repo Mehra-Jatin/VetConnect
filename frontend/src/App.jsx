@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Auth/Login.jsx';
 import Register from './pages/Auth/Register.jsx';
 
-import AdminDashboard from './pages/AdminDashboard.jsx';
 import Home from './pages/public/Home.jsx'; 
 import Doctor from './pages/public/Doctor.jsx';
 import Layout from './components/Layout.jsx';
@@ -39,9 +38,6 @@ export default function App() {
         <Route path="/doctor/settings" element={<Layout><DoctorSettings /></Layout>} />
         <Route path="/doctor/chats/*" element={<Layout><DoctorChat /></Layout>} />
         <Route path="/doctor/:id" element={<Layout><DoctorPublicProfile /></Layout>} />
-
-
-        <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
 
 
         {/* User Profile */}
