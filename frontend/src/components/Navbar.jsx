@@ -18,7 +18,7 @@ const Navbar = () => {
   const user = {
     id: 1,
     name: 'JATIN',
-    role: 'patient', // change to 'patient' or null
+    role: 'doctor', // change to 'patient' or null
   };
 
   const [dropdownOpen, setDropdownOpen] = useState(false);

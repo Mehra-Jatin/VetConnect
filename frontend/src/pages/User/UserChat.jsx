@@ -3,7 +3,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import NoChatSelected from "../../components/NoChatSelected.jsx";
 import UserSideBar from "./components/UserSideBar.jsx";
-import UserChatWindow from "./components/UserChatWindow.jsx";
+import UserChatWindow from "../../components/ChatWindow.jsx";
 
 function UserChat() {
   return (

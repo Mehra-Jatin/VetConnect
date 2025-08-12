@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import MessageSkeleton from "../../../components/MessageSkeleton.jsx";
-import ChatHeader from "../../../components/ChatHeader.jsx";
-import MessageInput from "../../../components/MessageInput.jsx";
+import MessageSkeleton from "./MessageSkeleton.jsx";
+import ChatHeader from "./ChatHeader.jsx";
+import MessageInput from "./MessageInput.jsx";
 
-const UserChatWindow = () => {
+const ChatWindow = () => {
   const { chatId } = useParams(); // Get chatId from URL params
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,7 +16,7 @@ const UserChatWindow = () => {
   const dummyCurrentUser = {
     _id: "current_user_id",
     name: "You",
-    userType: "User" // or "Doctor"
+    userType: "Doctor" // or "User"
   };
 
   const dummyMessages = {
@@ -425,4 +425,4 @@ const UserChatWindow = () => {
   );
 };
 
-export default UserChatWindow;
+export default ChatWindow;

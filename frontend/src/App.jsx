@@ -18,6 +18,7 @@ import NotFound from './components/NotFound.jsx';
 import UserAppointments from './pages/User/UserAppointents.jsx';
 
 import UserChat from './pages/User/UserChat.jsx';
+import DoctorChat from './pages/Doctor/DoctorChat.jsx';
 
 export default function App() {
   return (
@@ -36,7 +37,8 @@ export default function App() {
         <Route path="/doctor/profile" element={<Layout><DoctorProfile /></Layout>} />
         <Route path="/doctor/appointments" element={<Layout><DoctorAppointments /></Layout>} />
         <Route path="/doctor/settings" element={<Layout><DoctorSettings /></Layout>} />
-            <Route path="/doctor/:id" element={<Layout><DoctorPublicProfile /></Layout>} />
+        <Route path="/doctor/chats/*" element={<Layout><DoctorChat /></Layout>} />
+        <Route path="/doctor/:id" element={<Layout><DoctorPublicProfile /></Layout>} />
 
 
         <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
