@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Star } from "lucide-react";
 
 const ReviewForm = ({ doctorId }) => {
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
   const [comment, setComment] = useState("");
 

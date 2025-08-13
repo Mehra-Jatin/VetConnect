@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, Loader } from 'lucide-react';
+import { useAuthStore } from '../../store/AuthStore';
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [isUnverifiedDoctor, setIsUnverifiedDoctor] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // 🔹 New loading state
+
     const navigate = useNavigate();
+    const { login, logout } = useAuthStore();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -23,35 +24,28 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true); // Start loader
 
         try {
-            // Fake login logic
-            const result = {
-                success: true,
-                user: {
-                    role: 'doctor',
-                    isValidated: false
-                }
-            };
+            await login(formData);
 
-            if (result.success) {
-                const user = result.user;
-
-                if (user.role === 'doctor' && !user.isValidated) {
-                    setIsUnverifiedDoctor(true);
-                } else if (user.role === 'doctor') {
-                    navigate('/doctor-profile');
-                } else if (user.role === 'patient') {
-                    navigate('/profile');
-                } else if (user.role === 'admin') {
-                    navigate('/admin-dashboard');
-                }
-            } else {
+            const user = useAuthStore.getState().user;
+            if (!user) {
                 setError('Login failed. Invalid credentials.');
+                return;
+            }
+
+            if (user.role === 'doctor' && !user.isValidated) {
+                setIsUnverifiedDoctor(true);
+                await logout();
+            } else {
+                navigate('/');
             }
         } catch (err) {
-            setError('An unexpected error occurred');
             console.error(err);
+            setError('An unexpected error occurred');
+        } finally {
+            setIsLoading(false); // Stop loader
         }
     };
 
@@ -88,6 +82,7 @@ export default function Login() {
                                 name="email"
                                 id="email"
                                 required
+                                value={formData.email}
                                 onChange={handleInputChange}
                                 placeholder="you@example.com"
                                 className="w-full pl-3 pr-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -105,6 +100,7 @@ export default function Login() {
                                 name="password"
                                 id="password"
                                 required
+                                value={formData.password}
                                 onChange={handleInputChange}
                                 placeholder="********"
                                 className="w-full pl-3 pr-10 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -113,16 +109,27 @@ export default function Login() {
                                 className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
                                 onClick={() => setShowPassword(!showPassword)}
                             >
-                                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                                {showPassword
+                                    ? <EyeOff className="h-5 w-5 text-gray-400" />
+                                    : <Eye className="h-5 w-5 text-gray-400" />}
                             </div>
                         </div>
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full py-2 px-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-md transition-colors"
+                        disabled={isLoading} // disable while loading
+                        className={`w-full py-2 px-4 font-semibold rounded-md transition-colors flex items-center justify-center 
+                            ${isLoading ? 'bg-orange-500 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700 text-white'}`}
                     >
-                        Sign In
+                        {isLoading ? (
+                            <>
+                                <Loader className="animate-spin h-5 w-5 mr-2" />
+                                Signing In...
+                            </>
+                        ) : (
+                            'Sign In'
+                        )}
                     </button>
                 </form>
             </div>
@@ -139,7 +146,7 @@ export default function Login() {
                         <h3 className="text-xl font-bold text-gray-900">Verification Pending</h3>
                         <p className="text-gray-600">
                             Your doctor account is under review by our admin team.
-                            You'll be notified via email once your account is verified.
+                            You&apos;ll be notified via email once your account is verified.
                         </p>
                         <button
                             onClick={() => setIsUnverifiedDoctor(false)}

@@ -1,46 +1,67 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaEnvelope, FaUserMd, FaUserInjured, FaEye, FaEyeSlash, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FaUser,
+  FaLock,
+  FaEnvelope,
+  FaUserMd,
+  FaUserInjured,
+  FaEye,
+  FaEyeSlash,
+  FaArrowRight,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { useAuthStore } from "../../store/AuthStore";
 
 export default function Register() {
   const [step, setStep] = useState(1);
-  const [role, setRole] = useState('patient');
+  const [role, setRole] = useState("patient");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    FirstName: '', LastName: '', email: '', password: '', confirmPassword: '', gender: '', PhoneNo: '', specialization: '', experience: ''
+    FirstName: "",
+    LastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gender: "",
+    PhoneNo: "",
+    specialization: "",
+    experience: "",
   });
   const [errors, setErrors] = useState({});
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isNewDoctor, setIsNewDoctor] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const register = async (data) => {
-    if (data.email === 'existing@example.com') return { success: false, message: 'Email already exists' };
-    return { success: true, message: 'Registration successful' };
-  };
+  const navigate = useNavigate();
+  const { register } = useAuthStore();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.FirstName) newErrors.FirstName = 'First name is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (formData.password.length < 6) newErrors.password = 'Password too short';
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+    if (!formData.FirstName) newErrors.FirstName = "First name is required";
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = "Invalid email format";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (formData.password.length < 6) newErrors.password = "Password too short";
+    if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateStep2 = () => {
     const newErrors = {};
-    if (!formData.PhoneNo) newErrors.PhoneNo = 'Phone is required';
-    if (!/^\d+$/.test(formData.PhoneNo)) newErrors.PhoneNo = 'Phone must be digits only';
+    if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.PhoneNo) newErrors.PhoneNo = "Phone is required";
+    if (!/^\d+$/.test(formData.PhoneNo))
+      newErrors.PhoneNo = "Phone must be digits only";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -48,17 +69,61 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (step === 2 && validateStep2()) {
+      setLoading(true);
       const result = await register({ ...formData, role });
+      setLoading(false);
+
       if (result.success) {
-        if (role === 'doctor') setIsNewDoctor(true);
-        else navigate('/auth/login');
+        if (role === "doctor") setIsNewDoctor(true);
+        else navigate("/auth/login");
       } else {
-        setError(result.message.includes('exists') ? 'This email is already registered.' : result.message);
+        setError(
+          result.message.includes("exists")
+            ? "This email is already registered."
+            : result.message
+        );
       }
     }
   };
 
-  if (isNewDoctor) return <div className="min-h-screen flex items-center justify-center text-center text-xl font-semibold">Registration complete. Await admin approval.</div>;
+  if (isNewDoctor)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center">
+          <div className="flex justify-center mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 text-green-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Registration Complete 🎉
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Thank you for signing up! Your account is pending admin approval.
+            You’ll receive an email once your account is activated.
+          </p>
+
+          <button
+            onClick={() => navigate("/")}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg shadow transition"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -218,7 +283,7 @@ export default function Register() {
                     error={errors.confirmPassword}
                   />
                 </div>
-              </div>{" "}
+              </div>
             </>
           )}
 
@@ -226,6 +291,7 @@ export default function Register() {
             <>
               <select
                 name="gender"
+                value={formData.gender}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
@@ -234,6 +300,10 @@ export default function Register() {
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
+              {errors.gender && (
+                <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+              )}
+
               <InputField
                 name="PhoneNo"
                 placeholder="Phone Number"
@@ -273,12 +343,37 @@ export default function Register() {
             )}
             <button
               type={step === 2 ? "submit" : "button"}
-              onClick={
-                step === 1 ? () => validateStep1() && setStep(2) : undefined
-              }
-              className="flex-1 bg-orange-600 text-white rounded p-2 flex items-center justify-center gap-2"
+              onClick={step === 1 ? () => validateStep1() && setStep(2) : undefined}
+              disabled={loading}
+              className={`flex-1 bg-orange-600 text-white rounded p-2 flex items-center justify-center gap-2 ${
+                loading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              {step === 1 ? (
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : step === 1 ? (
                 <>
                   Next <FaArrowRight />
                 </>
@@ -293,20 +388,39 @@ export default function Register() {
   );
 }
 
-const InputField = ({ name, type = "text", placeholder, value, onChange, error, icon, showToggle, toggleShow }) => (
+const InputField = ({
+  name,
+  type = "text",
+  placeholder,
+  value,
+  onChange,
+  error,
+  icon,
+  showToggle,
+  toggleShow,
+}) => (
   <div className="relative">
-    {icon && <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">{icon}</div>}
+    {icon && (
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+        {icon}
+      </div>
+    )}
     <input
       name={name}
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`pl-10 pr-10 w-full border rounded p-2 ${error ? 'border-red-500' : 'border-gray-300'} bg-gray-50`}
+      className={`pl-10 pr-10 w-full border rounded p-2 ${
+        error ? "border-red-500" : "border-gray-300"
+      } bg-gray-50`}
     />
     {showToggle && (
-      <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400" onClick={toggleShow}>
-        {type === 'password' ? <FaEyeSlash /> : <FaEye />}
+      <div
+        className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-400"
+        onClick={toggleShow}
+      >
+        {type === "password" ? <FaEyeSlash /> : <FaEye />}
       </div>
     )}
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}

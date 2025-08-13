@@ -9,7 +9,7 @@ const DoctorDetails = ({ doctor }) => {
         {/* Left - Doctor Profile */}
         <div className="flex flex-col items-center text-center">
           <img
-            src={doctor.image}
+            src={doctor.image !== "" ? doctor.image : "/doc.jpg"}
             alt={`${doctor.FirstName} ${doctor.LastName}`}
             className="w-40 h-40 rounded-full object-cover shadow-md border-4 border-orange-500"
           />

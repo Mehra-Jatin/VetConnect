@@ -1,104 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Eye, SearchX, RefreshCw, AlertTriangle } from "lucide-react";
-
-const dummyDoctors = [
-  {
-    _id: "1",
-    FirstName: "Aarav",
-    LastName: "Sharma",
-    specialization: "Cardiologist",
-    rating: 4.5,
-    numOfReviews: 28,
-    experience: 10,
-    fees: 500,
-    isValidated: true,
-    image: "doc1.png",
-  },
-  {
-    _id: "2",
-    FirstName: "Meera",
-    LastName: "Iyer",
-    specialization: "Dermatologist",
-    rating: 4.2,
-    numOfReviews: 18,
-    experience: 7,
-    fees: 400,
-    isValidated: true,
-    image: "doc1.png",
-  },
-  {
-    _id: "3",
-    FirstName: "Rahul",
-    LastName: "Verma",
-    specialization: "Orthopedic",
-    rating: 4.0,
-    numOfReviews: 12,
-    experience: 5,
-    fees: 600,
-    isValidated: true,
-    image: "doc1.png",
-  },
-  {
-    _id: "4",
-    FirstName: "Riya",
-    LastName: "Singh",
-    specialization: "Cardiologist",
-    rating: 3.6,
-    numOfReviews: 22,
-    experience: 3,
-    fees: 350,
-    isValidated: true,
-    image: "doc1.png",
-  },
-];
-
-const DoctorCard = ({ doctor }) => (
-  <div className="border rounded-lg shadow-sm hover:shadow-md transition p-6 mb-6">
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center text-xl font-bold text-gray-600">
-        {doctor.image ? (
-          <img
-            src={doctor.image}
-            alt={`${doctor.FirstName} ${doctor.LastName}`}
-            className="w-full h-full rounded-full object-cover"
-          />
-        ) : (
-          <span className="text-gray-400">
-            {" "}
-            {doctor.FirstName[0]}
-            {doctor.LastName[0]}
-          </span>
-        )}
-      </div>
-      <div className="flex-1 space-y-2">
-        <h3 className="text-xl font-semibold text-orange-900">
-          Dr. {doctor.FirstName} {doctor.LastName}
-        </h3>
-        <p className="text-orange-500 font-medium">{doctor.specialization}</p>
-        <div className="text-sm text-gray-600">
-          ⭐ {doctor.rating} ({doctor.numOfReviews} reviews)
-        </div>
-        <div className="text-sm text-gray-600">
-          🕒 {doctor.experience} years experience
-        </div>
-        <div className="text-sm text-gray-600">
-          💰 ₹{doctor.fees} per consultation
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <button className="flex items-center justify-center gap-2 px-4 py-2 border border-orange-500 text-orange-500 rounded hover:bg-orange-50 transition">
-            <Eye size={16} /> View Profile
-          </button>
-          <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition">
-            Book Appointment
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+import { SearchX } from "lucide-react";
+import { useAuthStore } from "../../store/AuthStore";
+import {DoctorCard} from "./components/DoctorCard.jsx";
 
 const Doctor = () => {
-  const [doctors, setDoctors] = useState([]);
+  const { doctors, getAllDoctors } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
@@ -108,12 +14,14 @@ const Doctor = () => {
     fees: "",
   });
 
-  useEffect(() => {
-    setTimeout(() => {
-      setDoctors(dummyDoctors);
-      setLoading(false);
-    }, 800);
-  }, []);
+ useEffect(() => {
+  const fetchDoctors = async () => {
+    setLoading(true);
+    await getAllDoctors();
+    setLoading(false);
+  };
+  fetchDoctors();
+}, [getAllDoctors]);
 
   const handleCheckboxChange = (type, value) => {
     setSearch(""); // clear search on filter change

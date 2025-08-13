@@ -1,69 +1,46 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import DoctorDetails from "./components/DoctorDetails.jsx";
 import DoctorReviews from "./components/DoctorReviews.jsx";
 import DoctorSkeleton from "./components/DoctorSkeleton.jsx";
-
-// Dummy data (replace with API later)
-const dummyDoctor = {
-  _id: "doc1",
-  FirstName: "Dr. Radhika",
-  LastName: "Sharma",
-  image: "/doc1.png",
-  email: "radhika@example.com",
-  PhoneNo: "9999888877",
-  gender: "Female",
-  specialization: "Pediatrics",
-  age: 42,
-  experience: 15,
-  fees: 600,
-  rating: 4.5,
-  isAvailable: true,
-  isValidated: true,
-  description:
-    "Dr. Radhika Sharma is an experienced Pediatrician dedicated to child healthcare for over 15 years. She specializes in newborn care, vaccinations, and adolescent health.",
-};
-
-const dummyReviews = [
-  {
-    _id: "rev1",
-    userId: { FirstName: "Ravi", LastName: "Verma" },
-    rating: 5,
-    comment: "Dr. Radhika is amazing with kids. Highly recommended!",
-    createdAt: "2025-08-01T10:30:00Z",
-  },
-  {
-    _id: "rev2",
-    userId: { FirstName: "Sneha", LastName: "Mehta" },
-    rating: 4,
-    comment: "Very knowledgeable and calm during consultation.",
-    createdAt: "2025-07-25T12:00:00Z",
-  },
-];
+import { useAuthStore } from "../../store/AuthStore.js";
 
 const DoctorFullProfile = () => {
-  const { id } = useParams();
-  const [doctor, setDoctor] = useState(null);
+  const { user, getDoctorRatings } = useAuthStore();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API
-    setTimeout(() => {
-      setDoctor(dummyDoctor);
-      setReviews(dummyReviews);
+    const fetchDoctorData = async () => {
+      if (!user?._id) return;
+      setLoading(true);
+      const ratings = await getDoctorRatings(user._id);
+      setReviews(ratings || []);
       setLoading(false);
-    }, 800);
-  }, [id]);
+    };
+
+    fetchDoctorData();
+  }, [user, getDoctorRatings]);
 
   if (loading) {
-    return <div className="max-w-6xl mx-auto"><DoctorSkeleton /></div>;
+    return (
+      <div className="max-w-6xl mx-auto">
+        <DoctorSkeleton />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-20 text-gray-600">
+        Doctor profile not found.
+      </div>
+    );
   }
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <DoctorDetails doctor={doctor} />
+      <div className="max-w-6xl mx-auto space-y-8">
+        <DoctorDetails doctor={user} />
         <DoctorReviews reviews={reviews} />
       </div>
     </div>

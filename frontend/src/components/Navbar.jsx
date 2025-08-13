@@ -11,22 +11,21 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 
+import { useAuthStore } from '../store/AuthStore';
+
 const Navbar = () => {
   const navigate = useNavigate();
 
-  // Simulated logged-in user
-  const user = {
-    id: 1,
-    name: 'JATIN',
-    role: 'doctor', // change to 'patient' or null
-  };
-
+  const user = useAuthStore.getState().user; // get user from auth store
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [chatSubmenuOpen, setChatSubmenuOpen] = useState(false);
 
-  const handleLogout = () => {
+  const {logout} = useAuthStore();
+
+  const handleLogout = async () => {
     setDropdownOpen(false);
     setChatSubmenuOpen(false);
+    await logout();
     navigate('/');
   };
 
@@ -35,7 +34,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold text-orange-600">
-          MediConnect
+          VetConnect
         </Link>
 
         {/* Right Side */}
@@ -87,11 +86,6 @@ const Navbar = () => {
                       </Link>
                     )}
 
-
-                   
-                
-
-                
 
                     {user.role === 'patient' && (
                       <Link
@@ -194,7 +188,7 @@ const Navbar = () => {
                       onClick={handleLogout}
                       className="flex items-center gap-2 w-full px-4 py-2 text-sm hover:bg-gray-100 text-red-600"
                     >
-                      <LogOut size={16} /> Logout
+                      <LogOut size={16} /> Logout 
                     </button>
                   </div>
                 </div>
