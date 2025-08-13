@@ -35,7 +35,6 @@ const doctorSchema = mongoose.Schema(
     gender: {
       type: String,
       enum: ['Male', 'Female', 'other'],
-      default: '',
     },
     specialization: {
       type: String,
