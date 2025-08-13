@@ -1,64 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { CalendarX, MessageSquare, Repeat } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-const dummyUserAppointments = [
-  {
-    _id: "booking1",
-    doctorId: {
-      _id: "doc1",
-      FirstName: "Dr. Aarav",
-      LastName: "Sharma",
-      email: "aaravsharma@example.com",
-      PhoneNo: "9876543210",
-      specialization: "Cardiologist",
-    },
-    dateOnly: "2025-08-10",
-    timeOnly: "10:00 AM",
-    dayOfWeek: "Friday",
-    completionDateOnly: "2025-08-12",
-    completionTimeOnly: "10:00 AM",
-    completionDayOfWeek: "Sunday",
-    monthName: "August",
-    amount: 500,
-    paymentStatus: "Completed",
-    paymentId: "PAY12345678",
-  },
-  {
-    _id: "booking2",
-    doctorId: {
-      _id: "doc2",
-      FirstName: "Dr. Neha",
-      LastName: "Verma",
-      email: "nehaverma@example.com",
-      PhoneNo: "9123456780",
-      specialization: "Dermatologist",
-    },
-    dateOnly: "2025-08-03",
-    timeOnly: "2:30 PM",
-    dayOfWeek: "Sunday",
-    completionDateOnly: "0000-00-00",
-    completionTimeOnly: "N/A",
-    completionDayOfWeek: "N/A",
-    monthName: "August",
-    amount: 700,
-    paymentStatus: "Failed",
-    paymentId: "PAY987654321",
-  },
-];
+import { useAuthStore } from "../../store/AuthStore";
 
 const UserAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const { getUserAppointments } = useAuthStore();
 
   useEffect(() => {
-    setTimeout(() => {
-      setAppointments(dummyUserAppointments);
-      setLoading(false);
-    }, 800);
-  }, []);
+    const fetchAppointments = async () => {
+      setLoading(true);
+      try {
+        const data = await getUserAppointments();
+        setAppointments(data.bookings || []);
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+        setAppointments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAppointments();
+  }, [getUserAppointments]);
 
   const filtered = appointments.filter((apt) => {
     const val = searchTerm.toLowerCase();
@@ -78,60 +44,30 @@ const UserAppointments = () => {
     return acc;
   }, {});
 
+  const isPastDate = (dateStr) => {
+    if (!dateStr || dateStr === "0000-00-00") return false;
+    return new Date(dateStr) < new Date();
+  };
+
   if (loading)
-  return (
-    <div className="bg-gray-50 min-h-screen py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="h-8 w-40 bg-gray-200 rounded mb-6 animate-pulse" />
-        <div className="h-10 w-full bg-gray-200 rounded mb-6 animate-pulse" />
+    return (
+       <div className="bg-gray-50 min-h-screen py-8">
 
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="bg-white border rounded-lg p-4 mb-4 flex items-stretch animate-pulse"
-          >
-            {/* Date section */}
-            <div className="w-1/6 flex flex-col items-center justify-center space-y-2">
-              <div className="w-10 h-6 bg-gray-200 rounded" />
-              <div className="w-12 h-4 bg-gray-100 rounded" />
-            </div>
 
-            <div className="w-px bg-gray-300 mx-4" />
-
-            {/* User + Booking info */}
-            <div className="w-4/6 flex">
-              {/* User Info */}
-              <div className="w-1/2 pr-4 border-r border-gray-300 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-gray-300 rounded-full" />
-                  <div className="w-20 h-4 bg-gray-200 rounded" />
-                </div>
-                <div className="space-y-1">
-                  <div className="w-32 h-3 bg-gray-100 rounded" />
-                  <div className="w-28 h-3 bg-gray-100 rounded" />
-                </div>
-              </div>
-
-              {/* Booking Info */}
-              <div className="w-1/2 pl-4 space-y-2">
-                <div className="w-24 h-3 bg-gray-100 rounded" />
-                <div className="w-44 h-3 bg-gray-100 rounded" />
-                <div className="w-52 h-3 bg-gray-100 rounded" />
-                <div className="w-36 h-3 bg-gray-100 rounded" />
-              </div>
-            </div>
-
-            {/* Chat Button */}
-            <div className="w-1/6 flex items-center justify-end">
-              <div className="w-20 h-8 bg-gray-200 rounded" />
-            </div>
-          </div>
-        ))}
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="h-8 w-40 bg-gray-200 rounded mb-6 animate-pulse" />
+          <div className="h-10 w-full bg-gray-200 rounded mb-6 animate-pulse" />
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="bg-white h-24 border rounded-lg p-4 mb-4 flex items-stretch animate-pulse"
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  if (appointments.length === 0) {
+  if (appointments.length === 0)
     return (
       <div className="flex flex-col items-center justify-center text-center h-[70vh] text-orange-700">
         <CalendarX size={60} className="text-orange-500 mb-4" />
@@ -147,12 +83,6 @@ const UserAppointments = () => {
         </button>
       </div>
     );
-  }
-
-  const isPastDate = (dateStr) => {
-    if (!dateStr || dateStr === "0000-00-00") return false;
-    return new Date(dateStr) < new Date();
-  };
 
   return (
     <div className="bg-gray-50 min-h-fit py-8">
@@ -221,12 +151,10 @@ const UserAppointments = () => {
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>📍 Online</p>
                         <p>
-                          📅 Booking: {apt.dayOfWeek}, {apt.dateOnly} at{" "}
-                          {apt.timeOnly}
+                          📅 Booking: {apt.dayOfWeek}, {apt.dateOnly} at {apt.timeOnly}
                         </p>
                         <p>
-                          ✅ Completion: {apt.completionDayOfWeek},{" "}
-                          {apt.completionDateOnly} at{" "}
+                          ✅ Completion: {apt.completionDayOfWeek}, {apt.completionDateOnly} at{" "}
                           {apt.completionTimeOnly}
                         </p>
                         <p>

@@ -13,7 +13,7 @@ const razorpay = new Razorpay({
 
 export const bookAppointment = async (req, res) => {
   const { doctorId } = req.body;
-  const userId = res.user.id; // This should be req.user.id
+  const userId = req.user.id; 
 
   try {
     const doctor = await Doctor.findById(doctorId);
@@ -46,12 +46,28 @@ export const bookAppointment = async (req, res) => {
       return res.status(500).json({ message: "Failed to create payment order" });
     }
 
+
+       const now = new Date();
+    const dayOfWeek = now.toLocaleString("en-US", { weekday: "long" });
+    const dateOnly = now.toISOString().split("T")[0];
+    const timeOnly = now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+    const monthName = now.toLocaleString("en-US", { month: "long" });
     const booking = new Booking({
       userId,
       doctorId,
       amount: doctor.fees,
       razorpayOrderId: order.id, // Fixed: was razorpayOrder.id
-      paymentStatus: "Pending",
+      paymentStatus: "Failed",
+      paymentId: null,
+      date: now,
+      dayOfWeek: dayOfWeek,
+      dateOnly: dateOnly,
+      timeOnly: timeOnly,
+      monthName: monthName,
     });
 
     await booking.save();
@@ -92,14 +108,6 @@ export const verifyPayment = async (req, res) => {
     }
 
     const now = new Date();
-    const dayOfWeek = now.toLocaleString("en-US", { weekday: "long" });
-    const dateOnly = now.toISOString().split("T")[0];
-    const timeOnly = now.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    const monthName = now.toLocaleString("en-US", { month: "long" });
 
     if (isValid) {
       const completion = new Date(now.getTime() + 48 * 60 * 60 * 1000);
@@ -113,15 +121,10 @@ export const verifyPayment = async (req, res) => {
 
       booking.paymentStatus = "Completed";
       booking.paymentId = razorpayPaymentId;
-      booking.date = now;
-      booking.dayOfWeek = dayOfWeek;
-      booking.dateOnly = dateOnly;
-      booking.timeOnly = timeOnly;
       booking.completionDate = completion;
       booking.completionDayOfWeek = completionDayOfWeek;
       booking.completionDateOnly = completionDateOnly;
       booking.completionTimeOnly = completionTimeOnly;
-      booking.monthName = monthName;
 
       await booking.save();
       return res.status(200).json({ success: true });
@@ -130,15 +133,10 @@ export const verifyPayment = async (req, res) => {
       // Payment failed — clear appointment info
       booking.paymentStatus = "Failed";
       booking.paymentId = razorpayPaymentId;
-      booking.date = now;
-      booking.dayOfWeek = dayOfWeek;
-      booking.dateOnly = dateOnly;
-      booking.timeOnly = timeOnly;
       booking.completionDate = null;
       booking.completionDayOfWeek = "N/A";
       booking.completionDateOnly = "0000-00-00";
       booking.completionTimeOnly = "N/A";
-      booking.monthName = monthName;
 
       await booking.save();
       return res.status(400).json({ success: false });

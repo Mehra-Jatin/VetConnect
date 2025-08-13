@@ -6,7 +6,7 @@ import { authorizeRoles } from '../middleware/RoleMiddleware.js';
 const router = express.Router();
 
 router.post('/book-appointment',authMiddleware,authorizeRoles('patient'), bookAppointment);
-router.post('/verify-appointment',authMiddleware,authorizeRoles('patient'), verifyPayment);
+router.post('/verify-payment',authMiddleware,authorizeRoles('patient'), verifyPayment);
 
 router.get('/get-appointments',authMiddleware,authorizeRoles('patient'), getUsersBookings);
 

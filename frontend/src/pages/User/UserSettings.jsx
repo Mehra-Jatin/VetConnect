@@ -31,8 +31,8 @@ const UserSettings = () => {
     confirmPassword: "",
   });
 
+  // Fetch user data simulation
   useEffect(() => {
-    // Simulate API call
     setTimeout(() => {
       setFormData({
         firstName: "JATIN",
@@ -52,11 +52,40 @@ const UserSettings = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleImageChange = (e) => {
+  // Convert image to Base64 and send to backend
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, profileImage: URL.createObjectURL(file) });
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+      const base64Image = reader.result;
+      setFormData({ ...formData, profileImage: base64Image });
+
+      try {
+        const response = await fetch("/api/user/update-image", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Authorization: `Bearer ${token}` if needed
+          },
+          body: JSON.stringify({ image: base64Image }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("Profile image updated successfully!");
+          // Update with returned URL if your backend sends one
+          setFormData((prev) => ({ ...prev, profileImage: data.imageUrl || base64Image }));
+        } else {
+          alert(data.message || "Image upload failed!");
+        }
+      } catch (error) {
+        console.error("Image upload error:", error);
+        alert("Failed to upload image.");
+      }
+    };
   };
 
   const handlePasswordChange = (e) => {
@@ -67,11 +96,13 @@ const UserSettings = () => {
   const handleSave = () => {
     setEditMode(false);
     alert("Changes saved successfully!");
+    // Call API to update user info
   };
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete your account?")) {
       alert("Account deleted successfully!");
+      // Call API to delete user
     }
   };
 
@@ -87,12 +118,13 @@ const UserSettings = () => {
       confirmPassword: "",
     });
     setShowPasswordSection(false);
+    // Call API to update password
   };
 
-  // Skeleton loader for loading state
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto min-h-screen p-4 sm:p-6 space-y-8 animate-pulse">
+        {/* Skeleton Loader */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-4 sm:space-y-0">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200" />
@@ -101,24 +133,6 @@ const UserSettings = () => {
               <div className="w-28 h-4 bg-gray-200 rounded" />
             </div>
           </div>
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <div className="w-5 h-5 bg-gray-200 rounded" />
-                <div className="flex-1 h-4 bg-gray-200 rounded" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3">
-          <div className="w-40 h-5 bg-gray-200 rounded" />
-          <div className="w-64 h-4 bg-gray-200 rounded" />
-          <div className="w-32 h-10 bg-gray-200 rounded" />
-        </div>
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 space-y-3">
-          <div className="w-40 h-5 bg-gray-200 rounded" />
-          <div className="w-64 h-4 bg-gray-200 rounded" />
-          <div className="w-32 h-10 bg-gray-200 rounded" />
         </div>
       </div>
     );
@@ -157,6 +171,7 @@ const UserSettings = () => {
                 </label>
               )}
             </div>
+
             {/* Profile Info */}
             <div className="flex-1 w-full">
               {editMode ? (
@@ -192,6 +207,7 @@ const UserSettings = () => {
               <p className="text-gray-500">Patient Profile</p>
             </div>
           </div>
+
           {/* Info Fields */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
@@ -216,6 +232,7 @@ const UserSettings = () => {
               </div>
             ))}
           </div>
+
           {/* Save / Cancel Buttons */}
           {editMode && (
             <div className="mt-6 flex flex-col sm:flex-row gap-3">

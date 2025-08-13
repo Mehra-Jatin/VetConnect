@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import DoctorDetails from "../Doctor/components/DoctorDetails.jsx";
-import AppointmentForm from "./components/AppointmentForm.jsx";
+import {AppointmentForm} from "./components/AppointmentForm.jsx";
 import DoctorReviews from "../Doctor/components/DoctorReviews.jsx";
 import ReviewForm from "./components/ReviewForm.jsx";
 import DoctorSkeleton from "../Doctor/components/DoctorSkeleton.jsx";

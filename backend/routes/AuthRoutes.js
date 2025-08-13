@@ -1,7 +1,6 @@
 import express from 'express';
 import { checkAuth, getProfile, login, logout, register } from '../controllers/authControllers.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
-
 const router = express.Router();
 
 router.post('/register',register);
@@ -10,5 +9,9 @@ router.post('/logout',logout);
 
 router.get('/profile', authMiddleware, getProfile);
 router.get('/check', checkAuth);
+
+
+
+
 export default router;
 

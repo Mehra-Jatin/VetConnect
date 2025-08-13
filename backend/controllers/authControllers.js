@@ -203,8 +203,9 @@ export const checkAuth = async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    let user = await User.findById(decoded.userId).select("-password");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    let user;
+    user = await User.findById(decoded.userId).select("-password");
     if (!user) {
       user = await Doctor.findById(decoded.userId).select("-password");
       if (!user) {
