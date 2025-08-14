@@ -5,6 +5,7 @@ import Booking from "../models/bookingModel.js";
 import crypto from "crypto";
 import Rating from "../models/ratingModel.js";
 import cloudinary from "../config/cloudinary.js";
+import bcrypt from "bcryptjs";
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_API_KEY,
@@ -206,6 +207,9 @@ export const updateUserProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    if(user.email === "jane.smith@example.com") {
+      return res.status(400).json({ message: "Cannot update profile for Test account" });
+    }
 
     user.FirstName = FirstName || user.FirstName;
     user.LastName = LastName || user.LastName;
@@ -215,7 +219,8 @@ export const updateUserProfile = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Profile updated successfully" });
+
+    return res.status(200).json({ message: "Profile updated successfully"  });
   } catch (error) {
     console.error("Error updating user profile:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -248,5 +253,47 @@ export const updateUserImage = async (req, res) => {
   } catch (error) {
     console.error("Error updating user profile image:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.email === "jane.smith@example.com") {
+      return res.status(400).json({ message: "Cannot change password for Test account" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteUserAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.email === "jane.smith@example.com") {
+      return res.status(400).json({ message: "Cannot delete Test account" });
+    }
+
+    await User.findByIdAndDelete(req.user.id);
+
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
   }
 };

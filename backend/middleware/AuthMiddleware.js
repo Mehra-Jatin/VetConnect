@@ -11,8 +11,6 @@ export const authMiddleware =async (req, res, next) => {
     
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-      console.log('Decoded JWT:', decoded);
-
       const user = await User.findById(decoded.userId);
       const doctor = await Doctor.findById(decoded.userId);
       if (!user && !doctor) {

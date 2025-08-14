@@ -1,49 +1,41 @@
-import {create} from 'zustand';
-
+import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
 
-
-export const useAuthStore = create((set,get) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   isCheckingAuth: true,
   doctors: [],
-  bookings: [],
+ doctorReviews: [],
+  
   checkAuth: async () => {
     set({ isCheckingAuth: true });
-    try{
-        const response = await axiosInstance.get('/api/auth/check');
-         if(response.status === 200){
-             set({ user: response.data });
-         }
-         else{
-            set({ user: null });
-         }
-    } catch (error) {
-        console.error('Authentication check failed:', error);
+    try {
+      const response = await axiosInstance.get('/api/auth/check');
+      if (response.status === 200) {
+        set({ user: response.data });
+      } else {
         set({ user: null });
+      }
+    } catch (error) {
+      console.error('Authentication check failed:', error);
+      set({ user: null });
     } finally {
-        set({ isCheckingAuth: false });
+      set({ isCheckingAuth: false });
     }
   },
-
-
 
   login: async (credentials) => {
     try {
       const response = await axiosInstance.post('/api/auth/login', credentials);
-        if(response.status === 200){
-            set({ user: response.data.user });
-        }
-        else{
-            set({ user: null });
-        }
+      if (response.status === 200) {
+        set({ user: response.data.user });
+      } else {
+        set({ user: null });
+      }
     } catch (error) {
       console.error('Login failed:', error);
     }
-    
   },
-
-
 
   logout: async () => {
     try {
@@ -76,47 +68,34 @@ export const useAuthStore = create((set,get) => ({
       }
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
-        set({ doctors: [] });
+      set({ doctors: [] });
+    }
+  },
+
+  getDoctorById: async (id) => {
+    try {
+      const response = await axiosInstance.get(`/doctor/${id}`);
+      if (response.status === 200) {
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Failed to fetch doctor:', error);
+      return null;
     }
   },
 
 
-  getDoctorById: async (id) => {
-  try {
-    const response = await axiosInstance.get(`/doctor/${id}`);
-    if (response.status === 200) {
-        return response.data;
-    }
-  } catch (error) {
-    console.error('Failed to fetch doctor:', error);
-        return null;
-  }
-},
 
-getDoctorRatings: async (id) => {
-  try {
-    const response = await axiosInstance.get(`/doctor/ratings/${id}`);
-    if (response.status === 200) {
-      return response.data;
-    }
-  } catch (error) {
-    console.error('Failed to fetch doctor ratings:', error);
-    return null;
-  }
-},
-
- bookAppointment: async (doctorId) => {
+  bookAppointment: async (doctorId) => {
     try {
       console.log("Booking appointment for doctor:", doctorId);
       
-      // Make sure user is logged in
       const { user } = get();
       if (!user) {
         alert("Please login to book an appointment");
         return;
       }
 
-      // Create the booking order
       const response = await axiosInstance.post("/api/user/book-appointment", { 
         doctorId 
       });
@@ -124,7 +103,6 @@ getDoctorRatings: async (id) => {
       const data = response.data;
       console.log("Booking response:", data);
 
-      // Check if Razorpay is available
       if (!window.Razorpay) {
         console.error("Razorpay is not loaded");
         alert("Payment gateway is not available. Please refresh and try again.");
@@ -142,7 +120,6 @@ getDoctorRatings: async (id) => {
           try {
             console.log("Payment successful:", response);
             
-            // Verify payment
             const verifyResponse = await axiosInstance.post("/api/user/verify-payment", {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
@@ -151,7 +128,6 @@ getDoctorRatings: async (id) => {
             });
 
             if (verifyResponse.data.success) {
-              // Update local state
               const currentState = get();
               set({ 
                 bookings: [
@@ -179,7 +155,7 @@ getDoctorRatings: async (id) => {
           contact: user.PhoneNo || ''
         },
         theme: {
-          color: "#ea580c" // Orange theme
+          color: "#ea580c"
         },
         modal: {
           ondismiss: function() {
@@ -190,7 +166,6 @@ getDoctorRatings: async (id) => {
 
       const rzp = new window.Razorpay(options);
       
-      // Handle payment errors
       rzp.on('payment.failed', function (response) {
         console.error("Payment failed:", response.error);
         alert(`Payment failed: ${response.error.description || 'Unknown error'}`);
@@ -201,7 +176,6 @@ getDoctorRatings: async (id) => {
     } catch (error) {
       console.error("Booking error:", error);
       
-      // More specific error messages
       if (error.response?.status === 401) {
         alert("Please login to book an appointment");
       } else if (error.response?.status === 404) {
@@ -212,16 +186,14 @@ getDoctorRatings: async (id) => {
         alert("Booking failed. Please try again later.");
       }
       
-      throw error; // Re-throw for component error handling
+      throw error;
     }
   },
-
 
   getUserAppointments: async () => {
     try {
       const response = await axiosInstance.get("/api/user/get-appointments");
       return response.data;
-
     } catch (error) {
       console.error("Failed to fetch user appointments:", error);
       return [];
@@ -232,11 +204,209 @@ getDoctorRatings: async (id) => {
     try {
       const response = await axiosInstance.get(`/api/doctor/bookings`);
       return response.data;
-
     } catch (error) {
       console.error("Failed to fetch doctor appointments:", error);
       return [];
     }
-  }
-}));
+  },
 
+  updateUserImage: async (image) => {
+    try {
+      const response = await axiosInstance.put("/api/user/update-image", { image });
+      return response.data;
+    } catch (error) {
+      console.error("Failed to update user image:", error);
+      return null;
+    }
+  },
+
+  updateUserProfile: async (profileData) => {
+    try {
+      const response = await axiosInstance.put("/api/user/update-profile", profileData);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error("Failed to update user profile:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update password",
+      };
+    } finally {
+      await get().checkAuth();
+    }
+  },
+
+  updateUserPassword: async (passwordData) => {
+    try {
+      const response = await axiosInstance.put("/api/user/update-password", passwordData);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update password",
+      };
+    }
+  },
+
+  deleteUserAccount: async () => {
+    try {
+      const response = await axiosInstance.delete("/api/user/delete-account");
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to delete account",
+      };
+    }
+  },
+
+  // Doctor-specific functions
+  getDoctorProfile: async () => {
+    try {
+      const response = await axiosInstance.get("/api/doctor/profile");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch doctor profile:", error);
+      return null;
+    }
+  },
+
+  updateDoctorImage: async (image) => {
+    try {
+      const response = await axiosInstance.put("/api/doctor/update-image", { image });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error("Failed to update doctor image:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update image",
+      };
+    }
+  },
+
+  updateDoctorProfile: async (profileData) => {
+    try {
+      const response = await axiosInstance.put("/api/doctor/update-profile", profileData);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error("Failed to update doctor profile:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update profile",
+      };
+    } finally {
+      await get().checkAuth();
+    }
+  },
+
+  updateDoctorDescription: async (description) => {
+    try {
+      const response = await axiosInstance.put("/api/doctor/update-description", { description });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error("Failed to update doctor description:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update description",
+      };
+    }
+    finally{
+      await get().checkAuth();
+    }
+  },
+
+  setDoctorAvailability: async (isAvailable) => {
+    try {
+      const response = await axiosInstance.put("/api/doctor/set-availability", { isAvailable });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error("Failed to update doctor availability:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update availability",
+      };
+    }
+    finally{
+      await get().checkAuth();
+    }
+  },
+
+  deleteDoctorAccount: async () => {
+    try {
+      const response = await axiosInstance.delete("/api/doctor/delete-account");
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to delete account",
+      };
+    }
+  },
+  submitDoctorReview: async (doctorId, rating, comment) => {
+  try {
+    const { user } = get();
+    if (!user) {
+      return { success: false, message: "Please login to submit a review" };
+    }
+
+    const response = await axiosInstance.post(`/api/doctor/review/${doctorId}`, {
+      rating,
+      comment,
+    });
+
+    return {
+      success: true,
+      message: response.data.message || "Review submitted successfully",
+    };
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to submit review",
+    };
+  }
+},
+
+getDoctorReviews: async (doctorId) => {
+  try {
+    const response = await axiosInstance.get(`/doctor/ratings/${doctorId}`);
+    if (response.status === 200) {
+      set({ doctorReviews: response.data });
+      return { success: true };
+    }
+  } catch (error) {
+    console.error("Failed to fetch doctor reviews:", error);
+    set({ doctorReviews: [] });
+    return { success: false };
+  }
+},
+
+submitDoctorReview: async (doctorId, rating, comment) => {
+  try {
+    const { user } = get();
+    if (!user) {
+      return { success: false, message: "Please login to submit a review" };
+    }
+
+    const response = await axiosInstance.post(`/api/user/rate-doctor`, {
+      doctorId,
+      rating,
+      comment,
+    });
+
+    // Refresh reviews after submitting
+    await get().getDoctorReviews(doctorId);
+
+    return {
+      success: true,
+      message: response.data.message || "Review submitted successfully",
+    };
+  } catch (error) {
+    console.error("Failed to submit review:", error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to submit review",
+    };
+  }
+},
+
+}));

@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaEnvelope,
-  FaPhone,
-  FaBirthdayCake,
-  FaUser,
   FaCamera,
 } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { AiOutlineLock } from "react-icons/ai";
 import { BsShieldLock } from "react-icons/bs";
+import { useAuthStore } from "../../store/AuthStore";
 
 const UserSettings = () => {
+  const {
+    user,
+    updateUserProfile,
+    updateUserImage,
+    updateUserPassword,
+    deleteUserAccount,
+  } = useAuthStore();
+
   const [editMode, setEditMode] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // initial load
+  const [loadingAction, setLoadingAction] = useState(null); // track specific API calls
   const [showPasswordSection, setShowPasswordSection] = useState(false);
 
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    age: "",
-    gender: "",
-    profileImage: "",
-  });
+ const [formData, setFormData] = useState({
+  FirstName: "",
+  LastName: "",
+  email: "",
+  PhoneNo: "",
+  age: "",
+  gender: "",
+  profileImage: "",
+});
+
+  const [previewImage, setPreviewImage] = useState(null);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -31,220 +39,220 @@ const UserSettings = () => {
     confirmPassword: "",
   });
 
-  // Fetch user data simulation
   useEffect(() => {
-    setTimeout(() => {
+    if (user) {
       setFormData({
-        firstName: "JATIN",
-        lastName: "MEHRA",
-        email: "jatinmehra@gmail.com",
-        phone: "1234567896",
-        age: "18",
-        gender: "Male",
-        profileImage: "",
+        FirstName: user.FirstName || "",
+        LastName: user.LastName || "",
+        email: user.email || "",
+        PhoneNo: user.PhoneNo || "",
+        age: user.age || "",
+        gender: user.gender || "",
+        profileImage: user.image || "",
       });
-      setLoading(false);
-    }, 600);
-  }, []);
+    }
+    setLoading(false);
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Convert image to Base64 and send to backend
-  const handleImageChange = async (e) => {
+  const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      const base64Image = reader.result;
-      setFormData({ ...formData, profileImage: base64Image });
-
-      try {
-        const response = await fetch("/api/user/update-image", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Authorization: `Bearer ${token}` if needed
-          },
-          body: JSON.stringify({ image: base64Image }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          alert("Profile image updated successfully!");
-          // Update with returned URL if your backend sends one
-          setFormData((prev) => ({ ...prev, profileImage: data.imageUrl || base64Image }));
-        } else {
-          alert(data.message || "Image upload failed!");
-        }
-      } catch (error) {
-        console.error("Image upload error:", error);
-        alert("Failed to upload image.");
-      }
+    reader.onloadend = () => {
+      setPreviewImage(reader.result);
     };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageUpload = async () => {
+    if (!previewImage) return;
+    setLoadingAction("uploadImage");
+    const res = await updateUserImage(previewImage);
+    setLoadingAction(null);
+    if (res) {
+      alert("Profile image updated successfully!");
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: res.imageUrl || previewImage,
+      }));
+      setPreviewImage(null);
+    } else {
+      alert("Failed to update profile image");
+    }
+  };
+
+  const handleCancelPreview = () => {
+    setPreviewImage(null);
+  };
+
+  const handleSave = async () => {
+    setLoadingAction("updateProfile");
+    const res = await updateUserProfile(formData);
+    setLoadingAction(null);
+    if (res.success) {
+      alert(res.message);
+      setEditMode(false);
+    } 
+    else{
+      alert(res.message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete your account?")) {
+      setLoadingAction("deleteAccount");
+      const res = await deleteUserAccount();
+      setLoadingAction(null);
+      if (res.success) {
+        alert(res.message);
+        window.location.href = "/";
+      } else {
+        alert(res.message);
+      }
+    }
   };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setPasswordData({ ...passwordData, [name]: value });
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    setEditMode(false);
-    alert("Changes saved successfully!");
-    // Call API to update user info
-  };
-
-  const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete your account?")) {
-      alert("Account deleted successfully!");
-      // Call API to delete user
-    }
-  };
-
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       alert("New password and confirm password do not match!");
       return;
     }
-    alert("Password updated successfully!");
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    setShowPasswordSection(false);
-    // Call API to update password
+    setLoadingAction("updatePassword");
+    const res = await updateUserPassword(passwordData);
+    setLoadingAction(null);
+    alert(res.message);
+    if (res.success) {
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowPasswordSection(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto min-h-screen p-4 sm:p-6 space-y-8 animate-pulse">
-        {/* Skeleton Loader */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-4 sm:space-y-0">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200" />
-            <div className="flex-1 space-y-3">
-              <div className="w-40 h-6 bg-gray-200 rounded" />
-              <div className="w-28 h-4 bg-gray-200 rounded" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-6">Loading user data...</div>;
 
   return (
     <div className="bg-gray-50 min-h-fit py-6 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Profile Card */}
+        {/* Profile Image Section */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-4 sm:space-y-0">
-            {/* Profile Image */}
-            <div className="relative">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-orange-500 overflow-hidden flex items-center justify-center bg-gray-100">
-                {formData.profileImage ? (
-                  <img
-                    src={formData.profileImage}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-gray-400 text-xs sm:text-sm text-center">
-                    Upload Profile Image
-                  </span>
-                )}
-              </div>
-              {editMode && (
-                <label className="absolute bottom-2 right-2 bg-orange-500 p-2 rounded-full cursor-pointer text-white">
-                  <FaCamera />
+          <h2 className="text-lg font-semibold mb-4">Profile Image</h2>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-32 h-32 rounded-full border-2 border-orange-500 overflow-hidden bg-gray-100 flex items-center justify-center">
+              <img
+                src={previewImage || formData.profileImage || ""}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {!previewImage && (
+                <label className="bg-orange-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-orange-600">
+                  <FaCamera className="inline mr-2" /> Select Image
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handleImageChange}
+                    onChange={handleImageSelect}
                     className="hidden"
                   />
                 </label>
               )}
-            </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 w-full">
-              {editMode ? (
-                <div className="flex flex-col sm:flex-row gap-2 sm:space-x-4 w-full">
-                  <input
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="border rounded px-3 py-2 w-full sm:w-40"
-                  />
-                  <input
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="border rounded px-3 py-2 w-full sm:w-40"
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-bold">
-                    {formData.firstName} {formData.lastName}
-                  </h1>
+              {previewImage && (
+                <div className="flex gap-3">
                   <button
-                    onClick={() => setEditMode(true)}
-                    className="text-orange-500 hover:text-orange-600"
+                    onClick={handleImageUpload}
+                    disabled={loadingAction === "uploadImage"}
+                    className={`bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 ${
+                      loadingAction === "uploadImage" &&
+                      "opacity-50 cursor-not-allowed"
+                    }`}
                   >
-                    ✏️
+                    {loadingAction === "uploadImage"
+                      ? "Uploading..."
+                      : "Upload"}
+                  </button>
+                  <button
+                    onClick={handleCancelPreview}
+                    className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500"
+                  >
+                    Cancel
                   </button>
                 </div>
               )}
-              <p className="text-gray-500">Patient Profile</p>
             </div>
           </div>
+        </div>
 
-          {/* Info Fields */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Profile Info Section */}
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Profile Information</h2>
+            {!editMode && (
+              <button
+                onClick={() => setEditMode(true)}
+                className="text-orange-500 hover:text-orange-600"
+              >
+                ✏️ Edit
+              </button>
+            )}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: <FaEnvelope />, name: "email", type: "email" },
-              { icon: <FaPhone />, name: "phone", type: "text" },
-              { icon: <FaBirthdayCake />, name: "age", type: "number" },
-              { icon: <FaUser />, name: "gender", type: "text" },
-            ].map((field, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <span className="text-gray-500">{field.icon}</span>
+              { name: "FirstName", label: "First Name" },
+              { name: "LastName", label: "Last Name" },
+              { name: "email", label: "Email" },
+              { name: "PhoneNo", label: "Phone" },
+              { name: "age", label: "Age" },
+              { name: "gender", label: "Gender" },
+            ].map((field) => (
+              <div key={field.name}>
                 {editMode ? (
                   <input
-                    type={field.type}
+                    type="text"
                     name={field.name}
                     value={formData[field.name]}
                     onChange={handleChange}
                     className="border rounded px-3 py-2 w-full"
                   />
                 ) : (
-                  <span>{formData[field.name]}</span>
+                  <p>{formData[field.name]}</p>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Save / Cancel Buttons */}
           {editMode && (
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="mt-6 flex gap-3">
               <button
                 onClick={handleSave}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 w-full sm:w-auto"
+                disabled={loadingAction === "updateProfile"}
+                className={`bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 ${
+                  loadingAction === "updateProfile" &&
+                  "opacity-50 cursor-not-allowed"
+                }`}
               >
-                Save Changes
+                {loadingAction === "updateProfile"
+                  ? "Saving..."
+                  : "Save Changes"}
               </button>
               <button
                 onClick={() => setEditMode(false)}
-                className="text-gray-500 hover:text-gray-700 w-full sm:w-auto"
+                className="text-gray-500 hover:text-gray-700"
               >
                 Cancel
               </button>
@@ -252,70 +260,65 @@ const UserSettings = () => {
           )}
         </div>
 
-        {/* Security Section */}
+        {/* Security */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
           <h2 className="flex items-center space-x-2 text-lg font-semibold">
             <BsShieldLock className="text-orange-500" />
             <span>Security</span>
           </h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Manage your account security settings
-          </p>
-          <div>
-            <button
-              onClick={() => setShowPasswordSection(!showPasswordSection)}
-              className="flex items-center justify-between w-full text-left font-medium text-gray-700 hover:text-orange-500"
-            >
-              <span className="flex items-center space-x-2">
-                <AiOutlineLock /> <span>Change Password</span>
-              </span>
-              <span>{showPasswordSection ? "▲" : "▼"}</span>
-            </button>
-            {showPasswordSection && (
-              <div className="mt-4 space-y-3">
-                {["currentPassword", "newPassword", "confirmPassword"].map(
-                  (name, i) => (
-                    <input
-                      key={i}
-                      type="password"
-                      name={name}
-                      placeholder={
-                        name === "currentPassword"
-                          ? "Current Password"
-                          : name === "newPassword"
-                          ? "New Password"
-                          : "Confirm New Password"
-                      }
-                      value={passwordData[name]}
-                      onChange={handlePasswordChange}
-                      className="border rounded px-3 py-2 w-full"
-                    />
-                  )
-                )}
-                <button
-                  onClick={handlePasswordUpdate}
-                  className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 w-full sm:w-auto"
-                >
-                  Update Password
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => setShowPasswordSection(!showPasswordSection)}
+            className="mt-3 flex items-center gap-2 text-orange-500"
+          >
+            <AiOutlineLock /> Change Password
+          </button>
+          {showPasswordSection && (
+            <div className="mt-4 space-y-3">
+              {["currentPassword", "newPassword", "confirmPassword"].map(
+                (name) => (
+                  <input
+                    key={name}
+                    type="password"
+                    name={name}
+                    placeholder={name.replace(/([A-Z])/g, " $1")}
+                    value={passwordData[name]}
+                    onChange={handlePasswordChange}
+                    className="border rounded px-3 py-2 w-full"
+                  />
+                )
+              )}
+              <button
+                onClick={handlePasswordUpdate}
+                disabled={loadingAction === "updatePassword"}
+                className={`bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 ${
+                  loadingAction === "updatePassword" &&
+                  "opacity-50 cursor-not-allowed"
+                }`}
+              >
+                {loadingAction === "updatePassword"
+                  ? "Updating..."
+                  : "Update Password"}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Delete Account Section */}
+        {/* Delete */}
         <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
           <h2 className="flex items-center space-x-2 text-red-600 text-lg font-semibold">
             <MdDelete /> <span>Delete Account</span>
           </h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Permanently remove your account and all associated data.
-          </p>
           <button
             onClick={handleDelete}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 w-full sm:w-auto"
+            disabled={loadingAction === "deleteAccount"}
+            className={`bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 ${
+              loadingAction === "deleteAccount" &&
+              "opacity-50 cursor-not-allowed"
+            }`}
           >
-            Delete My Account
+            {loadingAction === "deleteAccount"
+              ? "Deleting..."
+              : "Delete My Account"}
           </button>
         </div>
       </div>

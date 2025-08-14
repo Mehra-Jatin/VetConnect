@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import DoctorDetails from "../Doctor/components/DoctorDetails.jsx";
-import {AppointmentForm} from "./components/AppointmentForm.jsx";
+import { AppointmentForm } from "./components/AppointmentForm.jsx";
 import DoctorReviews from "../Doctor/components/DoctorReviews.jsx";
 import ReviewForm from "./components/ReviewForm.jsx";
 import DoctorSkeleton from "../Doctor/components/DoctorSkeleton.jsx";
@@ -11,49 +11,30 @@ import NoDoctorFound from "./components/NoDoctorFound.jsx";
 
 const DoctorPublicProfile = () => {
   const { id } = useParams();
-  const { getDoctorById, getDoctorRatings } = useAuthStore();
+  const { getDoctorById } = useAuthStore();
 
   const [doctor, setDoctor] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDoctorAndRatings = async () => {
+    const fetchDoctor = async () => {
       setLoading(true);
-
       try {
-        const [fetchedDoctor, fetchedRatings] = await Promise.all([
-          getDoctorById(id),
-          getDoctorRatings(id),
-        ]);
-
+        const fetchedDoctor = await getDoctorById(id);
         setDoctor(fetchedDoctor);
-        setReviews(fetchedRatings || []); // ratings API should return review objects
       } catch (err) {
         console.error("Failed to fetch doctor profile:", err);
         setDoctor(null);
-        setReviews([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDoctorAndRatings();
-  }, [id, getDoctorById, getDoctorRatings]);
+    fetchDoctor();
+  }, [id, getDoctorById]);
 
-  if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto space-y-8">
-        <DoctorSkeleton />
-      </div>
-    );
-  }
-
-  if (!doctor) {
-    return (
-        <NoDoctorFound />
-    );
-  }
+  if (loading) return <div className="max-w-6xl mx-auto space-y-8"><DoctorSkeleton /></div>;
+  if (!doctor) return <NoDoctorFound />;
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4">
@@ -71,7 +52,7 @@ const DoctorPublicProfile = () => {
         {/* Reviews Section */}
         <div className="bg-white shadow rounded-lg p-6 space-y-6">
           <ReviewForm doctorId={doctor._id} />
-          <DoctorReviews reviews={reviews} />
+          <DoctorReviews doctorId={doctor._id} />
         </div>
       </div>
     </div>

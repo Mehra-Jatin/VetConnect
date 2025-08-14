@@ -1,21 +1,37 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
+import { useAuthStore } from "../../../store/AuthStore";
 
 const ReviewForm = ({ doctorId }) => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
   const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const { submitDoctorReview } = useAuthStore();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submit Review", { doctorId, rating, comment });
+    if (!rating) return alert("Please select a rating");
+    if (!comment.trim()) return alert("Please write a comment");
+
+    setLoading(true);
+    const res = await submitDoctorReview(doctorId, rating, comment);
+    setLoading(false);
+
+    if (res.success) {
+      setRating(0);
+      setComment("");
+      alert("Review submitted successfully");
+    } else {
+      alert(res.message);
+    }
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow border border-gray-200 mt-8">
       <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
-        
         {/* Star Rating */}
         <div>
           <label className="block text-sm font-medium mb-2">Rating</label>
@@ -60,9 +76,10 @@ const ReviewForm = ({ doctorId }) => {
         {/* Submit */}
         <button
           type="submit"
-          className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+          disabled={loading}
+          className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:opacity-50"
         >
-          Submit Review
+          {loading ? "Submitting..." : "Submit Review"}
         </button>
       </form>
     </div>

@@ -1,5 +1,5 @@
 import express from 'express';
-import { bookAppointment, getUsersBookings, rateDoctor, verifyPayment , updateUserImage , updateUserProfile } from '../controllers/userControlers.js';
+import { bookAppointment, getUsersBookings, rateDoctor, verifyPayment , updateUserImage , updateUserProfile, changePassword, deleteUserAccount } from '../controllers/userControlers.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
 import { authorizeRoles } from '../middleware/RoleMiddleware.js';
 
@@ -14,5 +14,7 @@ router.post('/rate-doctor', authMiddleware, authorizeRoles('patient'), rateDocto
 
 router.put('/update-profile', authMiddleware, authorizeRoles('patient'), updateUserProfile);
 router.put('/update-image', authMiddleware, authorizeRoles('patient'), updateUserImage);
+router.put('/update-password', authMiddleware, authorizeRoles('patient'), changePassword);
+router.delete('/delete-account', authMiddleware, authorizeRoles('patient'), deleteUserAccount);
 
 export default router;
