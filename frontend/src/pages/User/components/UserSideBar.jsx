@@ -1,59 +1,29 @@
-import { useEffect, useState } from "react";
-import { Users } from "lucide-react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Users } from "lucide-react"; // Ye import missing tha
+import { useChatStore } from "../../../store/ChatStore.js";
 import SidebarSkeleton from "../../../components/SidebarSkeleton.jsx";
 
 const UserSideBar = () => {
-  const [users, setUsers] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState([]); // Store online user IDs
+  const { contacts, onlineUsers, getContacts, isContactsLoading, setSelectedUser, selectedUser } = useChatStore();
   const { chatId } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  // Dummy contacts (replace with API call later)
-  const dummyContacts = [
-    {
-      _id: "u1",
-      fullName: "Dr. Emily Carter",
-      profilePicture: "https://randomuser.me/api/portraits/women/65.jpg",
-    },
-    {
-      _id: "u2",
-      fullName: "John Doe",
-      profilePicture: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    {
-      _id: "u3",
-      fullName: "Sarah Wilson",
-      profilePicture: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-  ];
-
-
-  const handleClick = (userId) => {
-    setCurrentUserId(userId);
-    navigate(`/user/chats/${userId}`);
-  };
-
-  // Dummy online users
-  const dummyOnline = ["u2", "u3"];
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setUsers(dummyContacts);
-      setOnlineUsers(dummyOnline);
-      setIsLoading(false);
-    }, 600);
-  }, []);
+    getContacts(); // fetch contacts from backend
+  }, [getContacts]);
 
-  if (isLoading) return <SidebarSkeleton />;
+  const handleClick = (user) => {
+    setSelectedUser(user);
+    navigate(`/user/chats/${user._id}`);
+  };
+
+  if (isContactsLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-screen w-20 lg:w-72 border-r border-black flex flex-col">
+    <aside className="h-screen w-20 lg:w-72 border-r border-gray-200 flex flex-col bg-white">
       {/* Sidebar header */}
-      <div className="border-b border-base-300 w-full p-5">
+      <div className="border-b border-gray-200 w-full p-5 bg-white">
         <div className="flex items-center gap-2">
           <Users className="w-6 h-6" />
           <span className="font-medium hidden lg:block">Chats</span>
@@ -62,23 +32,25 @@ const UserSideBar = () => {
 
       {/* Contact list */}
       <div className="overflow-y-auto w-full py-3">
-        {users.map((user) => {
+        {contacts.map((contact) => {
           const isActive =
-            chatId === user._id || user._id === currentUserId; // Highlight if current user
-
-          const isOnline = onlineUsers.includes(user._id);
+            chatId === contact._id || selectedUser?._id === contact._id;
+          const isOnline = onlineUsers.includes(contact._id);
 
           return (
             <button
-              key={user._id}
-              onClick={() => handleClick(user._id)}
+              key={contact._id}
+              onClick={() => handleClick(contact)}
               className={`w-full p-3 flex items-center gap-3 transition-colors duration-200 rounded-lg
-                ${isActive ? "bg-gray-100" : "hover:bg-base-300"}`}
+                ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
             >
               <div className="relative mx-auto lg:mx-0">
                 <img
-                  src={user.profilePicture}
-                  alt={user.fullName}
+                  src={
+                    contact.image ||
+                    `https://ui-avatars.com/api/?name=${contact.FirstName}+${contact.LastName}&background=ea580c&color=fff`
+                  }
+                  alt={`${contact.FirstName} ${contact.LastName}`}
                   className="size-12 object-cover rounded-full"
                 />
                 {isOnline && (
@@ -87,18 +59,30 @@ const UserSideBar = () => {
               </div>
 
               <div className="hidden lg:block text-left min-w-0">
-                <div className="font-medium truncate">{user.fullName}</div>
-                <div className="text-sm text-zinc-400">
-                  {isOnline ? "Online" : "Offline"}
+                <div className="font-medium truncate">
+                  {contact.FirstName} {contact.LastName}
+                </div>
+                <div className="text-sm text-gray-400">
+                  {contact.specialization ? (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {contact.specialization}
+                    </span>
+                  ) : contact.role === "admin" ? (
+                    <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                      Admin
+                    </span>
+                  ) : (
+                    <span>{isOnline ? "Online" : "Offline"}</span>
+                  )}
                 </div>
               </div>
             </button>
           );
         })}
 
-        {users.length === 0 && (
-          <div className="text-center text-zinc-500 py-4">
-            No conversations yet
+        {contacts.length === 0 && !isContactsLoading && (
+          <div className="text-center text-gray-500 py-4">
+            No contacts available
           </div>
         )}
       </div>

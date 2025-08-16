@@ -1,5 +1,6 @@
 import Doctor from "../models/doctorModel.js";
 import Rating from "../models/ratingModel.js";
+import User from "../models/userModel.js";
 
 
 
@@ -49,3 +50,20 @@ export const getDoctorRatings = async (req, res) => {
 }
 
 
+export const getUserDoctorById = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        let user;
+        user = await Doctor.findById(userId).select("-password");
+        if (!user) {
+           user = await User.findById(userId).select("-password");
+           if (!user) {
+               return res.status(404).json({ message: "User not found" });
+           }
+        }
+        return res.status(200).json(user);
+    } catch (error) {
+        console.error("Error fetching user doctor:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};

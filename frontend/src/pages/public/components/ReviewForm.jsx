@@ -8,7 +8,7 @@ const ReviewForm = ({ doctorId }) => {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { submitDoctorReview } = useAuthStore();
+  const { submitDoctorReview,user } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,6 +27,12 @@ const ReviewForm = ({ doctorId }) => {
       alert(res.message);
     }
   };
+
+  if(user.role === "doctor"){
+    return(
+      <></>
+    )
+  }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow border border-gray-200 mt-8">

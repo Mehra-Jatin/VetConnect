@@ -44,16 +44,18 @@ const UserAppointments = () => {
     return acc;
   }, {});
 
-  const isPastDate = (dateStr) => {
+  // Updated check: compares both date and time
+  const isPastDateTime = (dateStr, timeStr) => {
     if (!dateStr || dateStr === "0000-00-00") return false;
-    return new Date(dateStr) < new Date();
+
+    // Combine date + time for exact comparison
+    const dateTime = new Date(`${dateStr}T${timeStr || "00:00"}`);
+    return dateTime < new Date();
   };
 
   if (loading)
     return (
-       <div className="bg-gray-50 min-h-screen py-8">
-
-
+      <div className="bg-gray-50 min-h-screen py-8">
         <div className="max-w-5xl mx-auto px-4">
           <div className="h-8 w-40 bg-gray-200 rounded mb-6 animate-pulse" />
           <div className="h-10 w-full bg-gray-200 rounded mb-6 animate-pulse" />
@@ -107,7 +109,10 @@ const UserAppointments = () => {
             {grouped[month].map((apt) => {
               const doc = apt.doctorId;
               const isFailed = apt.paymentStatus === "Failed";
-              const isOver = isPastDate(apt.completionDateOnly);
+              const isOver = isPastDateTime(
+                apt.completionDateOnly,
+                apt.completionTimeOnly
+              );
 
               return (
                 <div
@@ -151,11 +156,12 @@ const UserAppointments = () => {
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>📍 Online</p>
                         <p>
-                          📅 Booking: {apt.dayOfWeek}, {apt.dateOnly} at {apt.timeOnly}
+                          📅 Booking: {apt.dayOfWeek}, {apt.dateOnly} at{" "}
+                          {apt.timeOnly}
                         </p>
                         <p>
-                          ✅ Completion: {apt.completionDayOfWeek}, {apt.completionDateOnly} at{" "}
-                          {apt.completionTimeOnly}
+                          ✅ Completion: {apt.completionDayOfWeek},{" "}
+                          {apt.completionDateOnly} at {apt.completionTimeOnly}
                         </p>
                         <p>
                           💳 ₹{apt.amount} -{" "}

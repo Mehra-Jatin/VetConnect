@@ -26,16 +26,30 @@ const DoctorAppointments = () => {
   }, [getDoctorAppointments]);
 
   // Search filtering
-  const filtered = appointments.filter((apt) => {
-    const val = searchTerm.toLowerCase();
-    const user = apt.userId;
-    return (
-      user.FirstName.toLowerCase().includes(val) ||
-      user.LastName.toLowerCase().includes(val) ||
-      user.email.toLowerCase().includes(val) ||
-      user.PhoneNo.toLowerCase().includes(val)
-    );
-  });
+// Fixed filtering logic - replace the existing filtered variable
+const filtered = appointments.filter((apt) => {
+  const val = searchTerm.toLowerCase();
+  const user = apt.userId || {};
+  
+  // Handle case where userId might be a string ID instead of populated object
+  if (typeof user === 'string') {
+    return false; // Can't search if user data isn't populated
+  }
+  
+  // More robust checking with optional chaining and safe string conversion
+  const firstName = user.FirstName || user.firstName || '';
+  const lastName = user.LastName || user.lastName || '';
+  const email = user.email || '';
+  const phoneNo = user.PhoneNo || user.phoneNo || user.phone || '';
+  
+  return (
+    firstName.toString().toLowerCase().includes(val) ||
+    lastName.toString().toLowerCase().includes(val) ||
+    email.toString().toLowerCase().includes(val) ||
+    phoneNo.toString().toLowerCase().includes(val)
+  );
+});
+
 
   // Group appointments by month
   const grouped = filtered.reduce((acc, apt) => {
@@ -160,7 +174,7 @@ const DoctorAppointments = () => {
                     {/* Chat Button */}
                     <div className="flex justify-end md:justify-center">
                       <button
-                        onClick={() => navigate(`/chat/user/${user._id}`)}
+                        onClick={() => navigate(`/doctor/chats/patient/${user._id}`)}
                         className="text-sm text-white bg-orange-500 px-4 py-2 rounded hover:bg-orange-600 flex items-center gap-1"
                       >
                         <MessageSquare size={16} />

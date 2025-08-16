@@ -25,7 +25,7 @@ export const authMiddleware =async (req, res, next) => {
       if (doctor) {
         req.user = doctor;
       }
-
+      
         next(); // Proceed to the next middleware or route handler
     } catch (error) {
         console.error("Authentication error:", error);

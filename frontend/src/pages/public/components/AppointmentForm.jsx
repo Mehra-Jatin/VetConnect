@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/AuthStore";
 
 export const AppointmentForm = ({ doctor }) => {
+  const navigate = useNavigate();
   const { bookAppointment, user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,7 +28,7 @@ export const AppointmentForm = ({ doctor }) => {
   };
 
   const handleDirectChat = () => {
-    console.log("Opening chat with doctor...");
+     navigate(`/doctor/chats/doctor/${doctor._id}`);
   };
 
   return (
@@ -35,7 +37,7 @@ export const AppointmentForm = ({ doctor }) => {
         <>
           <h3 className="text-2xl font-bold text-green-700 mb-3">Direct Chat</h3>
           <p className="text-gray-600 mb-5">
-            As a doctor, you can directly chat with patients without booking an appointment.
+            As a doctor, you can directly chat with other doctors without booking an appointment.
           </p>
           <button
             onClick={handleDirectChat}

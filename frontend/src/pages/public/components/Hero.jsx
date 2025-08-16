@@ -1,7 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="relative h-screen flex flex-col items-start justify-center overflow-hidden">
       {/* Background Image */}
@@ -40,6 +43,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
+            onClick={() => {navigate('/about')}}
             className="bg-orange-400 hover:bg-orange-500 transition-colors duration-300 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-sm text-sm sm:text-base"
           >
             LEARN MORE

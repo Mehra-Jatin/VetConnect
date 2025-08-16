@@ -1,24 +1,61 @@
 import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
+import { io } from 'socket.io-client';
+import { useChatStore } from './ChatStore';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
   isCheckingAuth: true,
   doctors: [],
- doctorReviews: [],
+  doctorReviews: [],
+  socket: null,
   
+  // Initialize socket connection
+  connectSocket: () => {
+    const { user } = get();
+    if (!user || get().socket?.connected) return;
+
+    const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:3000', {
+      query: {
+        userId: user._id
+      }
+    });
+
+    socket.connect();
+
+    set({ socket });
+
+    // Connect to chat store as well
+    useChatStore.getState().connectSocket(socket);
+  },
+
+  // Disconnect socket
+  disconnectSocket: () => {
+    const { socket } = get();
+    if (socket?.connected) {
+      socket.disconnect();
+    }
+    set({ socket: null });
+    
+    // Disconnect from chat store as well
+    useChatStore.getState().disconnectSocket();
+  },
+
   checkAuth: async () => {
     set({ isCheckingAuth: true });
     try {
       const response = await axiosInstance.get('/api/auth/check');
       if (response.status === 200) {
         set({ user: response.data });
+        get().connectSocket();
       } else {
         set({ user: null });
+        get().disconnectSocket();
       }
     } catch (error) {
       console.error('Authentication check failed:', error);
       set({ user: null });
+      get().disconnectSocket();
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -29,11 +66,14 @@ export const useAuthStore = create((set, get) => ({
       const response = await axiosInstance.post('/api/auth/login', credentials);
       if (response.status === 200) {
         set({ user: response.data.user });
+        get().connectSocket();
       } else {
         set({ user: null });
+        get().disconnectSocket();
       }
     } catch (error) {
       console.error('Login failed:', error);
+      get().disconnectSocket();
     }
   },
 
@@ -41,6 +81,10 @@ export const useAuthStore = create((set, get) => ({
     try {
       await axiosInstance.post('/api/auth/logout');
       set({ user: null });
+      get().disconnectSocket();
+      
+      // Clear chat data on logout
+      useChatStore.getState().clearChatData();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -83,8 +127,6 @@ export const useAuthStore = create((set, get) => ({
       return null;
     }
   },
-
-
 
   bookAppointment: async (doctorId) => {
     try {
@@ -341,72 +383,47 @@ export const useAuthStore = create((set, get) => ({
       };
     }
   },
+
+  getDoctorReviews: async (doctorId) => {
+    try {
+      const response = await axiosInstance.get(`/doctor/ratings/${doctorId}`);
+      if (response.status === 200) {
+        set({ doctorReviews: response.data });
+        return { success: true };
+      }
+    } catch (error) {
+      console.error("Failed to fetch doctor reviews:", error);
+      set({ doctorReviews: [] });
+      return { success: false };
+    }
+  },
+
   submitDoctorReview: async (doctorId, rating, comment) => {
-  try {
-    const { user } = get();
-    if (!user) {
-      return { success: false, message: "Please login to submit a review" };
+    try {
+      const { user } = get();
+      if (!user) {
+        return { success: false, message: "Please login to submit a review" };
+      }
+
+      const response = await axiosInstance.post(`/api/user/rate-doctor`, {
+        doctorId,
+        rating,
+        comment,
+      });
+
+      // Refresh reviews after submitting
+      await get().getDoctorReviews(doctorId);
+
+      return {
+        success: true,
+        message: response.data.message || "Review submitted successfully",
+      };
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to submit review",
+      };
     }
-
-    const response = await axiosInstance.post(`/api/doctor/review/${doctorId}`, {
-      rating,
-      comment,
-    });
-
-    return {
-      success: true,
-      message: response.data.message || "Review submitted successfully",
-    };
-  } catch (error) {
-    console.error("Failed to submit review:", error);
-    return {
-      success: false,
-      message: error.response?.data?.message || "Failed to submit review",
-    };
-  }
-},
-
-getDoctorReviews: async (doctorId) => {
-  try {
-    const response = await axiosInstance.get(`/doctor/ratings/${doctorId}`);
-    if (response.status === 200) {
-      set({ doctorReviews: response.data });
-      return { success: true };
-    }
-  } catch (error) {
-    console.error("Failed to fetch doctor reviews:", error);
-    set({ doctorReviews: [] });
-    return { success: false };
-  }
-},
-
-submitDoctorReview: async (doctorId, rating, comment) => {
-  try {
-    const { user } = get();
-    if (!user) {
-      return { success: false, message: "Please login to submit a review" };
-    }
-
-    const response = await axiosInstance.post(`/api/user/rate-doctor`, {
-      doctorId,
-      rating,
-      comment,
-    });
-
-    // Refresh reviews after submitting
-    await get().getDoctorReviews(doctorId);
-
-    return {
-      success: true,
-      message: response.data.message || "Review submitted successfully",
-    };
-  } catch (error) {
-    console.error("Failed to submit review:", error);
-    return {
-      success: false,
-      message: error.response?.data?.message || "Failed to submit review",
-    };
-  }
-},
-
+  },
 }));

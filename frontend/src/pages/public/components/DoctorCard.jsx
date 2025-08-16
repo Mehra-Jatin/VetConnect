@@ -27,10 +27,13 @@ export const DoctorCard = ({ doctor }) => {
   };
 
   const handleDirectChat = () => {
-    console.log("Opening chat with doctor...");
-    // Navigate to chat screen here
+     navigate(`/doctor/chats/doctor/${doctor._id}`);
   };
-
+   if(user.email === doctor.email){
+     return(
+      <></>
+     )
+   }
   return (
     <div className="border rounded-lg shadow-sm hover:shadow-md transition p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-6">

@@ -197,13 +197,6 @@ const Doctor = () => {
               />
             )}
 
-            {!loading && (
-              <p className="text-sm text-gray-600 mb-3">
-                {filteredDoctors.length} doctor
-                {filteredDoctors.length !== 1 ? "s" : ""} found
-              </p>
-            )}
-
             {loading && (
               <>
                 {[1, 2, 3].map((i) => (

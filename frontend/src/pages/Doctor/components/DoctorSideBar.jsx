@@ -1,61 +1,61 @@
 import { useEffect, useState } from "react";
 import { Users } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useChatStore } from "../../../store/ChatStore.js";
+import { useAuthStore } from "../../../store/AuthStore.js";
 import SidebarSkeleton from "../../../components/SidebarSkeleton.jsx";
 
 const DoctorSideBar = () => {
-  const [contacts, setContacts] = useState([]);
-  const [onlineContacts, setOnlineContacts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentContactId, setCurrentContactId] = useState(null);
   const { chatId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentContactId, setCurrentContactId] = useState(null);
 
-  // Dummy data for each role (replace with API fetch later)
-  const dummyAdmins = [
-    { _id: "a1", fullName: "Admin Smith", profilePicture: "https://randomuser.me/api/portraits/men/30.jpg" },
-    { _id: "a2", fullName: "Admin Jane", profilePicture: "https://randomuser.me/api/portraits/women/29.jpg" }
-  ];
-  const dummyDoctors = [
-    { _id: "d1", fullName: "Dr. Alice", profilePicture: "https://randomuser.me/api/portraits/women/65.jpg" },
-    { _id: "d2", fullName: "Dr. Bob", profilePicture: "https://randomuser.me/api/portraits/men/62.jpg" }
-  ];
-  const dummyUsers = [
-    { _id: "u1", fullName: "John Doe", profilePicture: "https://randomuser.me/api/portraits/men/22.jpg" },
-    { _id: "u2", fullName: "Sarah Wilson", profilePicture: "https://randomuser.me/api/portraits/women/54.jpg" }
-  ];
+  const { 
+    contacts, 
+    isContactsLoading, 
+    onlineUsers, 
+    getContacts, 
+    setSelectedUser 
+  } = useChatStore();
+  
+  const { user } = useAuthStore();
 
-  const dummyOnline = ["a1", "d2", "u2"]; // sample online IDs
-
-  const handleClick = (id) => {
-    setCurrentContactId(id);
+  const handleClick = (contact) => {
+    setCurrentContactId(contact._id);
+    setSelectedUser(contact);
 
     if (location.pathname.startsWith("/doctor/chats/admin")) {
-      navigate(`/doctor/chats/admin/${id}`);
+      navigate(`/doctor/chats/admin/${contact._id}`);
     } else if (location.pathname.startsWith("/doctor/chats/doctor")) {
-      navigate(`/doctor/chats/doctor/${id}`);
+      navigate(`/doctor/chats/doctor/${contact._id}`);
     } else if (location.pathname.startsWith("/doctor/chats/patient")) {
-      navigate(`/doctor/chats/patient/${id}`);
+      navigate(`/doctor/chats/patient/${contact._id}`);
     }
   };
 
-  useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      if (location.pathname.startsWith("/doctor/chats/admin")) {
-        setContacts(dummyAdmins);
-      } else if (location.pathname.startsWith("/doctor/chats/doctor")) {
-        setContacts(dummyDoctors);
-      } else if (location.pathname.startsWith("/doctor/chats/patient")) {
-        setContacts(dummyUsers);
-      }
-      setOnlineContacts(dummyOnline);
-      setIsLoading(false);
-    }, 600);
-  }, [location.pathname]);
+ useEffect(() => {
+  if (!user) return;
 
-  if (isLoading) return <SidebarSkeleton />;
+  const chatRole = location.pathname.split("/")[3]; 
+  // /doctor/chats/admin => ["", "doctor", "chats", "admin"]
+
+  if (chatRole === "admin") getContacts("admin");
+  else if (chatRole === "patient") getContacts("patient");
+  else if (chatRole === "doctor") getContacts("doctor");
+}, [location.pathname, user, getContacts]);
+
+
+
+  // Get display title based on route
+  const getTitle = () => {
+    if (location.pathname.includes("/admin")) return "Admins";
+    if (location.pathname.includes("/patient")) return "Patients";
+    if (location.pathname.includes("/doctor")) return "Doctors";
+    return "Contacts";
+  };
+
+  if (isContactsLoading) return <SidebarSkeleton />;
 
   return (
     <aside className="h-screen w-20 lg:w-72 border-r border-gray-200 flex flex-col bg-white">
@@ -64,9 +64,7 @@ const DoctorSideBar = () => {
         <div className="flex items-center gap-2">
           <Users className="w-6 h-6" />
           <span className="font-medium hidden lg:block">
-            {location.pathname.includes("/admin") ? "Admins"
-              : location.pathname.includes("/patient") ? "Users"
-              : "Doctors"}
+            {getTitle()}
           </span>
         </div>
       </div>
@@ -75,19 +73,19 @@ const DoctorSideBar = () => {
       <div className="overflow-y-auto w-full py-3">
         {contacts.map((contact) => {
           const isActive = chatId === contact._id || contact._id === currentContactId;
-          const isOnline = onlineContacts.includes(contact._id);
+          const isOnline = onlineUsers.includes(contact._id);
 
           return (
             <button
               key={contact._id}
-              onClick={() => handleClick(contact._id)}
+              onClick={() => handleClick(contact)}
               className={`w-full p-3 flex items-center gap-3 transition-colors duration-200 rounded-lg
                 ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
             >
               <div className="relative mx-auto lg:mx-0">
                 <img
-                  src={contact.profilePicture}
-                  alt={contact.fullName}
+                  src={contact.image || `https://ui-avatars.com/api/?name=${contact.FirstName}+${contact.LastName}&background=ea580c&color=fff`}
+                  alt={`${contact.FirstName} ${contact.LastName}`}
                   className="size-12 object-cover rounded-full"
                 />
                 {isOnline && (
@@ -96,18 +94,27 @@ const DoctorSideBar = () => {
               </div>
 
               <div className="hidden lg:block text-left min-w-0">
-                <div className="font-medium truncate">{contact.fullName}</div>
+                <div className="font-medium truncate">
+                  {contact.FirstName} {contact.LastName}
+                </div>
                 <div className="text-sm text-gray-400">
-                  {isOnline ? "Online" : "Offline"}
+                  {contact.specialization && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {contact.specialization}
+                    </span>
+                  )}
+                  {!contact.specialization && (
+                    <span>{isOnline ? "Online" : "Offline"}</span>
+                  )}
                 </div>
               </div>
             </button>
           );
         })}
 
-        {contacts.length === 0 && (
+        {contacts.length === 0 && !isContactsLoading && (
           <div className="text-center text-gray-500 py-4">
-            No conversations yet
+            No contacts available
           </div>
         )}
       </div>

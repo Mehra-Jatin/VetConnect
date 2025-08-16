@@ -9,10 +9,11 @@ import PublicRoutes from './routes/PublicRoutes.js';
 import AuthRoutes from './routes/AuthRoutes.js';
 import DoctorRoutes from './routes/DoctorRoutes.js';
 import UserRoutes from './routes/UserRoutes.js'
-
+import MessageRoutes from './routes/messageRoutes.js';
+import { server, app } from './config/socket.js';
 dotenv.config();
 
-const app = express();
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -36,9 +37,10 @@ app.use('/',PublicRoutes);
 app.use('/api/auth', AuthRoutes);
 app.use('/api/doctor', DoctorRoutes);
 app.use('/api/user', UserRoutes);
+app.use('/api/chat', MessageRoutes);
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
    connectDB();
 }

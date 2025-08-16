@@ -1,19 +1,25 @@
 import { Routes, Route } from "react-router-dom";
 import DoctorSideBar from "./components/DoctorSideBar";
-import DocChatWindow from "../../components/ChatWindow.jsx";
+import ChatWindow from "../../components/ChatWindow.jsx";
 import NoChatSelected from "../../components/NoChatSelected.jsx";
 
 function DoctorChat() {
   return (
-    <div className="flex h-screen w-full">
-      <DoctorSideBar />
-      <div className="flex-1 p-2 bg-base-100 overflow-hidden">
-        <Routes>
-          <Route path="/*" element={<NoChatSelected />} />
-          <Route path="/admin/:chatId" element={<DocChatWindow />} />
-          <Route path="/doctor/:chatId" element={<DocChatWindow />} />
-          <Route path="/patient/:chatId" element={<DocChatWindow />} />
-        </Routes>
+    <div className="h-screen bg-gray-50">
+      <div className="flex h-[90vh] max-w-6xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Sidebar */}
+        <DoctorSideBar />
+
+        {/* Main Chat Area */}
+        <div className="flex-1">
+          <Routes>
+            
+            <Route path="admin/:chatId" element={<ChatWindow />} />
+            <Route path="doctor/:chatId" element={<ChatWindow />} />
+            <Route path="patient/:chatId" element={<ChatWindow />} />
+             <Route path="*" element={<NoChatSelected />} />
+          </Routes>
+        </div>
       </div>
     </div>
   );
