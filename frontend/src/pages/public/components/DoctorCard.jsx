@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/AuthStore";
+import toast from "react-hot-toast";
 
 export const DoctorCard = ({ doctor }) => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export const DoctorCard = ({ doctor }) => {
   const handleBooking = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert("Please login to book an appointment");
+      toast.error("Please login to book an appointment");
       return;
     }
 

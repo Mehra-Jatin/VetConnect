@@ -56,7 +56,6 @@ const MessageInput = ({ onSendMessage, doctorId, disabled = false, placeholder =
       clearForm();
     } catch (err) {
       console.error(err);
-      alert("Failed to send message. Please try again.");
     } finally {
       setIsLoading(false);
     }

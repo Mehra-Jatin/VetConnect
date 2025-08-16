@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
 import { useAuthStore } from "../../../store/AuthStore";
+import toast from "react-hot-toast";
 
 const ReviewForm = ({ doctorId }) => {
   const [rating, setRating] = useState(0);
@@ -12,8 +13,8 @@ const ReviewForm = ({ doctorId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!rating) return alert("Please select a rating");
-    if (!comment.trim()) return alert("Please write a comment");
+    if (!rating) return toast.error("Please select a rating");
+    if (!comment.trim()) return toast.error("Please write a comment");
 
     setLoading(true);
     const res = await submitDoctorReview(doctorId, rating, comment);

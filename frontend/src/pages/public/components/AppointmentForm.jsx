@@ -12,7 +12,7 @@ export const AppointmentForm = ({ doctor }) => {
   const handleBooking = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert("Please login to book an appointment");
+      toast.error("Please login to book an appointment");
       return;
     }
 
@@ -21,7 +21,6 @@ export const AppointmentForm = ({ doctor }) => {
       await bookAppointment(doctor._id);
     } catch (error) {
       console.error("Booking failed:", error);
-      alert("Failed to book appointment. Please try again.");
     } finally {
       setIsLoading(false);
     }
