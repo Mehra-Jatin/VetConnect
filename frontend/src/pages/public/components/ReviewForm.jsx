@@ -17,13 +17,10 @@ const ReviewForm = ({ doctorId }) => {
     if (!comment.trim()) return toast.error("Please write a comment");
 
     setLoading(true);
-    const res = await submitDoctorReview(doctorId, rating, comment);
+     await submitDoctorReview(doctorId, rating, comment);
     setLoading(false);
-
-    if (res.success) {
-      setRating(0);
-      setComment("");
-    } 
+    setRating(0);
+    setComment("");
   };
 
   if(user &&user.role === "doctor"){

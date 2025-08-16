@@ -351,7 +351,10 @@ export const useAuthStore = create((set, get) => ({
   submitDoctorReview: async (doctorId, rating, comment) => {
     try {
       const { user } = get();
-      if (!user) return { success: false, message: "Please login to submit a review" };
+      if (!user) {
+        toast.error("Please login to submit a review");
+        return { success: false, message: "Please login to submit a review" };
+      }
 
       const response = await axiosInstance.post(`/api/user/rate-doctor`, { doctorId, rating, comment });
       await get().getDoctorReviews(doctorId);
