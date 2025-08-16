@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../../store/AuthStore";
+import toast from "react-hot-toast";
 
 export const AppointmentForm = ({ doctor }) => {
   const navigate = useNavigate();
