@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { axiosInstance } from '../lib/axios';
 import { io } from 'socket.io-client';
 import { useChatStore } from './ChatStore';
+import { toast } from 'react-hot-toast';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -9,35 +10,29 @@ export const useAuthStore = create((set, get) => ({
   doctors: [],
   doctorReviews: [],
   socket: null,
-  
+
   // Initialize socket connection
   connectSocket: () => {
     const { user } = get();
     if (!user || get().socket?.connected) return;
 
     const socket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:3000', {
-      query: {
-        userId: user._id
-      }
+      query: { userId: user._id },
     });
 
     socket.connect();
-
     set({ socket });
 
     // Connect to chat store as well
     useChatStore.getState().connectSocket(socket);
   },
 
-  // Disconnect socket
   disconnectSocket: () => {
     const { socket } = get();
-    if (socket?.connected) {
-      socket.disconnect();
-    }
+    if (socket?.connected) socket.disconnect();
     set({ socket: null });
-    
-    // Disconnect from chat store as well
+
+    // Disconnect from chat store
     useChatStore.getState().disconnectSocket();
   },
 
@@ -67,13 +62,16 @@ export const useAuthStore = create((set, get) => ({
       if (response.status === 200) {
         set({ user: response.data.user });
         get().connectSocket();
+        toast.success("Logged in successfully!");
       } else {
         set({ user: null });
         get().disconnectSocket();
+        toast.error("Login failed");
       }
     } catch (error) {
       console.error('Login failed:', error);
       get().disconnectSocket();
+      toast.error(error.response?.data?.message || "Login failed");
     }
   },
 
@@ -82,11 +80,11 @@ export const useAuthStore = create((set, get) => ({
       await axiosInstance.post('/api/auth/logout');
       set({ user: null });
       get().disconnectSocket();
-      
-      // Clear chat data on logout
       useChatStore.getState().clearChatData();
+      toast.success("Logged out successfully!");
     } catch (error) {
       console.error('Logout failed:', error);
+      toast.error("Logout failed");
     }
   },
 
@@ -94,24 +92,22 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post('/api/auth/register', data);
       if (res.status === 201 || res.status === 200) {
+        toast.success("Registration successful!");
         return { success: true, message: 'Registration successful', user: res.data.user };
       }
     } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || 'Registration failed',
-      };
+      toast.error(err.response?.data?.message || "Registration failed");
+      return { success: false, message: err.response?.data?.message || 'Registration failed' };
     }
   },
 
   getAllDoctors: async () => {
     try {
       const response = await axiosInstance.get('/doctors');
-      if (response.status === 200) {
-        set({ doctors: response.data });
-      }
+      if (response.status === 200) set({ doctors: response.data });
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
+      toast.error("Failed to fetch doctors");
       set({ doctors: [] });
     }
   },
@@ -119,35 +115,24 @@ export const useAuthStore = create((set, get) => ({
   getDoctorById: async (id) => {
     try {
       const response = await axiosInstance.get(`/doctor/${id}`);
-      if (response.status === 200) {
-        return response.data;
-      }
+      if (response.status === 200) return response.data;
     } catch (error) {
       console.error('Failed to fetch doctor:', error);
+      toast.error("Failed to fetch doctor");
       return null;
     }
   },
 
   bookAppointment: async (doctorId) => {
     try {
-      console.log("Booking appointment for doctor:", doctorId);
-      
       const { user } = get();
-      if (!user) {
-        alert("Please login to book an appointment");
-        return;
-      }
+      if (!user) return toast.error("Please login to book an appointment");
 
-      const response = await axiosInstance.post("/api/user/book-appointment", { 
-        doctorId 
-      });
-
+      const response = await axiosInstance.post("/api/user/book-appointment", { doctorId });
       const data = response.data;
-      console.log("Booking response:", data);
 
       if (!window.Razorpay) {
-        console.error("Razorpay is not loaded");
-        alert("Payment gateway is not available. Please refresh and try again.");
+        toast.error("Payment gateway unavailable. Refresh and try again.");
         return;
       }
 
@@ -160,8 +145,6 @@ export const useAuthStore = create((set, get) => ({
         order_id: data.orderId,
         handler: async function (response) {
           try {
-            console.log("Payment successful:", response);
-            
             const verifyResponse = await axiosInstance.post("/api/user/verify-payment", {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
@@ -172,23 +155,13 @@ export const useAuthStore = create((set, get) => ({
             if (verifyResponse.data.success) {
               const currentState = get();
               set({ 
-                bookings: [
-                  ...currentState.bookings, 
-                  { 
-                    ...data, 
-                    paymentId: response.razorpay_payment_id,
-                    paymentStatus: 'Completed'
-                  }
-                ]
+                bookings: [...(currentState.bookings || []), { ...data, paymentId: response.razorpay_payment_id, paymentStatus: 'Completed' }]
               });
-              
-              alert("Booking confirmed successfully!");
-            } else {
-              alert("Payment verification failed. Please contact support.");
-            }
+              toast.success("Booking confirmed successfully!");
+            } else toast.error("Payment verification failed. Contact support.");
           } catch (verifyError) {
             console.error("Payment verification failed:", verifyError);
-            alert("Payment verification failed. Please contact support.");
+            toast.error("Payment verification failed. Contact support.");
           }
         },
         prefill: {
@@ -196,39 +169,21 @@ export const useAuthStore = create((set, get) => ({
           email: user.email || '',
           contact: user.PhoneNo || ''
         },
-        theme: {
-          color: "#ea580c"
-        },
+        theme: { color: "#ea580c" },
         modal: {
-          ondismiss: function() {
-            console.log("Payment dialog closed");
-          }
+          ondismiss: () => console.log("Payment dialog closed")
         }
       };
 
       const rzp = new window.Razorpay(options);
-      
       rzp.on('payment.failed', function (response) {
-        console.error("Payment failed:", response.error);
-        alert(`Payment failed: ${response.error.description || 'Unknown error'}`);
+        toast.error(response.error?.description || "Payment failed");
       });
-
       rzp.open();
 
     } catch (error) {
       console.error("Booking error:", error);
-      
-      if (error.response?.status === 401) {
-        alert("Please login to book an appointment");
-      } else if (error.response?.status === 404) {
-        alert("Doctor not found");
-      } else if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert("Booking failed. Please try again later.");
-      }
-      
-      throw error;
+      toast.error(error.response?.data?.message || "Booking failed");
     }
   },
 
@@ -237,7 +192,8 @@ export const useAuthStore = create((set, get) => ({
       const response = await axiosInstance.get("/api/user/get-appointments");
       return response.data;
     } catch (error) {
-      console.error("Failed to fetch user appointments:", error);
+      console.error("Failed to fetch appointments:", error);
+      toast.error("Failed to fetch appointments");
       return [];
     }
   },
@@ -248,16 +204,20 @@ export const useAuthStore = create((set, get) => ({
       return response.data;
     } catch (error) {
       console.error("Failed to fetch doctor appointments:", error);
+      toast.error("Failed to fetch doctor appointments");
       return [];
     }
   },
 
+  // Profile update functions
   updateUserImage: async (image) => {
     try {
       const response = await axiosInstance.put("/api/user/update-image", { image });
+      toast.success("Profile image updated!");
       return response.data;
     } catch (error) {
       console.error("Failed to update user image:", error);
+      toast.error("Failed to update image");
       return null;
     }
   },
@@ -265,13 +225,11 @@ export const useAuthStore = create((set, get) => ({
   updateUserProfile: async (profileData) => {
     try {
       const response = await axiosInstance.put("/api/user/update-profile", profileData);
+      toast.success(response.data.message || "Profile updated successfully");
       return { success: true, message: response.data.message };
     } catch (error) {
-      console.error("Failed to update user profile:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update password",
-      };
+      toast.error(error.response?.data?.message || "Failed to update profile");
+      return { success: false, message: error.response?.data?.message || "Failed to update profile" };
     } finally {
       await get().checkAuth();
     }
@@ -280,34 +238,33 @@ export const useAuthStore = create((set, get) => ({
   updateUserPassword: async (passwordData) => {
     try {
       const response = await axiosInstance.put("/api/user/update-password", passwordData);
+      toast.success(response.data.message || "Password updated successfully");
       return { success: true, message: response.data.message };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update password",
-      };
+      toast.error(error.response?.data?.message || "Failed to update password");
+      return { success: false, message: error.response?.data?.message || "Failed to update password" };
     }
   },
 
   deleteUserAccount: async () => {
     try {
       const response = await axiosInstance.delete("/api/user/delete-account");
+      toast.success(response.data.message || "Account deleted successfully");
       return { success: true, message: response.data.message };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to delete account",
-      };
+      toast.error(error.response?.data?.message || "Failed to delete account");
+      return { success: false, message: error.response?.data?.message || "Failed to delete account" };
     }
   },
 
-  // Doctor-specific functions
+  // Doctor functions
   getDoctorProfile: async () => {
     try {
       const response = await axiosInstance.get("/api/doctor/profile");
       return response.data;
     } catch (error) {
       console.error("Failed to fetch doctor profile:", error);
+      toast.error("Failed to fetch doctor profile");
       return null;
     }
   },
@@ -315,26 +272,24 @@ export const useAuthStore = create((set, get) => ({
   updateDoctorImage: async (image) => {
     try {
       const response = await axiosInstance.put("/api/doctor/update-image", { image });
+      toast.success(response.data.message || "Doctor image updated");
       return { success: true, message: response.data.message };
     } catch (error) {
       console.error("Failed to update doctor image:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update image",
-      };
+      toast.error(error.response?.data?.message || "Failed to update doctor image");
+      return { success: false, message: error.response?.data?.message || "Failed to update doctor image" };
     }
   },
 
   updateDoctorProfile: async (profileData) => {
     try {
       const response = await axiosInstance.put("/api/doctor/update-profile", profileData);
+      toast.success(response.data.message || "Doctor profile updated");
       return { success: true, message: response.data.message };
     } catch (error) {
       console.error("Failed to update doctor profile:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update profile",
-      };
+      toast.error(error.response?.data?.message || "Failed to update doctor profile");
+      return { success: false, message: error.response?.data?.message || "Failed to update doctor profile" };
     } finally {
       await get().checkAuth();
     }
@@ -343,15 +298,13 @@ export const useAuthStore = create((set, get) => ({
   updateDoctorDescription: async (description) => {
     try {
       const response = await axiosInstance.put("/api/doctor/update-description", { description });
+      toast.success(response.data.message || "Description updated");
       return { success: true, message: response.data.message };
     } catch (error) {
-      console.error("Failed to update doctor description:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update description",
-      };
-    }
-    finally{
+      console.error("Failed to update description:", error);
+      toast.error(error.response?.data?.message || "Failed to update description");
+      return { success: false, message: error.response?.data?.message || "Failed to update description" };
+    } finally {
       await get().checkAuth();
     }
   },
@@ -359,15 +312,13 @@ export const useAuthStore = create((set, get) => ({
   setDoctorAvailability: async (isAvailable) => {
     try {
       const response = await axiosInstance.put("/api/doctor/set-availability", { isAvailable });
+      toast.success(response.data.message || "Availability updated");
       return { success: true, message: response.data.message };
     } catch (error) {
-      console.error("Failed to update doctor availability:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to update availability",
-      };
-    }
-    finally{
+      console.error("Failed to update availability:", error);
+      toast.error(error.response?.data?.message || "Failed to update availability");
+      return { success: false, message: error.response?.data?.message || "Failed to update availability" };
+    } finally {
       await get().checkAuth();
     }
   },
@@ -375,12 +326,11 @@ export const useAuthStore = create((set, get) => ({
   deleteDoctorAccount: async () => {
     try {
       const response = await axiosInstance.delete("/api/doctor/delete-account");
+      toast.success(response.data.message || "Doctor account deleted");
       return { success: true, message: response.data.message };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to delete account",
-      };
+      toast.error(error.response?.data?.message || "Failed to delete account");
+      return { success: false, message: error.response?.data?.message || "Failed to delete account" };
     }
   },
 
@@ -392,7 +342,7 @@ export const useAuthStore = create((set, get) => ({
         return { success: true };
       }
     } catch (error) {
-      console.error("Failed to fetch doctor reviews:", error);
+      console.error("Failed to fetch reviews:", error);
       set({ doctorReviews: [] });
       return { success: false };
     }
@@ -401,29 +351,16 @@ export const useAuthStore = create((set, get) => ({
   submitDoctorReview: async (doctorId, rating, comment) => {
     try {
       const { user } = get();
-      if (!user) {
-        return { success: false, message: "Please login to submit a review" };
-      }
+      if (!user) return { success: false, message: "Please login to submit a review" };
 
-      const response = await axiosInstance.post(`/api/user/rate-doctor`, {
-        doctorId,
-        rating,
-        comment,
-      });
-
-      // Refresh reviews after submitting
+      const response = await axiosInstance.post(`/api/user/rate-doctor`, { doctorId, rating, comment });
       await get().getDoctorReviews(doctorId);
-
-      return {
-        success: true,
-        message: response.data.message || "Review submitted successfully",
-      };
+      toast.success(response.data.message || "Review submitted successfully");
+      return { success: true, message: response.data.message || "Review submitted successfully" };
     } catch (error) {
       console.error("Failed to submit review:", error);
-      return {
-        success: false,
-        message: error.response?.data?.message || "Failed to submit review",
-      };
+      toast.error(error.response?.data?.message || "Failed to submit review");
+      return { success: false, message: error.response?.data?.message || "Failed to submit review" };
     }
   },
 }));

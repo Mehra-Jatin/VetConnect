@@ -22,13 +22,10 @@ const ReviewForm = ({ doctorId }) => {
     if (res.success) {
       setRating(0);
       setComment("");
-      alert("Review submitted successfully");
-    } else {
-      alert(res.message);
-    }
+    } 
   };
 
-  if(user.role === "doctor"){
+  if(user &&user.role === "doctor"){
     return(
       <></>
     )

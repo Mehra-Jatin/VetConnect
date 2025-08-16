@@ -29,7 +29,8 @@ export const DoctorCard = ({ doctor }) => {
   const handleDirectChat = () => {
      navigate(`/doctor/chats/doctor/${doctor._id}`);
   };
-   if(user.email === doctor.email){
+
+   if(user && user.email === doctor.email){
      return(
       <></>
      )
@@ -50,7 +51,7 @@ export const DoctorCard = ({ doctor }) => {
           </h3>
           <p className="text-orange-500 font-medium">{doctor.specialization}</p>
           <div className="text-sm text-gray-600">
-            ⭐ {doctor.rating} ({doctor.numOfReviews} reviews)
+            ⭐ {doctor.rating} Star
           </div>
           <div className="text-sm text-gray-600">
             🕒 {doctor.experience} years experience

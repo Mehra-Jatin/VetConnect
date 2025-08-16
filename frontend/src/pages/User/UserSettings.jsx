@@ -6,6 +6,7 @@ import { MdDelete } from "react-icons/md";
 import { AiOutlineLock } from "react-icons/ai";
 import { BsShieldLock } from "react-icons/bs";
 import { useAuthStore } from "../../store/AuthStore";
+import toast from "react-hot-toast";
 
 const UserSettings = () => {
   const {
@@ -75,15 +76,12 @@ const UserSettings = () => {
     const res = await updateUserImage(previewImage);
     setLoadingAction(null);
     if (res) {
-      alert("Profile image updated successfully!");
       setFormData((prev) => ({
         ...prev,
         profileImage: res.imageUrl || previewImage,
       }));
       setPreviewImage(null);
-    } else {
-      alert("Failed to update profile image");
-    }
+    } 
   };
 
   const handleCancelPreview = () => {
@@ -95,26 +93,17 @@ const UserSettings = () => {
     const res = await updateUserProfile(formData);
     setLoadingAction(null);
     if (res.success) {
-      alert(res.message);
       setEditMode(false);
     } 
-    else{
-      alert(res.message);
-    }
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete your account?")) {
       setLoadingAction("deleteAccount");
       const res = await deleteUserAccount();
       setLoadingAction(null);
       if (res.success) {
-        alert(res.message);
         window.location.href = "/";
-      } else {
-        alert(res.message);
       }
-    }
   };
 
   const handlePasswordChange = (e) => {
@@ -124,13 +113,12 @@ const UserSettings = () => {
 
   const handlePasswordUpdate = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New password and confirm password do not match!");
+      toast.error("New password and confirm password do not match!");
       return;
     }
     setLoadingAction("updatePassword");
     const res = await updateUserPassword(passwordData);
     setLoadingAction(null);
-    alert(res.message);
     if (res.success) {
       setPasswordData({
         currentPassword: "",

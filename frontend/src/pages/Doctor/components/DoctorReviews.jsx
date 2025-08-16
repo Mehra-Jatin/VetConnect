@@ -3,13 +3,14 @@ import { Star } from "lucide-react";
 import { useAuthStore } from "../../../store/AuthStore";
 
 const DoctorReviews = ({ doctorId }) => {
-  const { doctorReviews, getDoctorReviews, isLoadingReviews } = useAuthStore();
+  const doctorReviews = useAuthStore((state) => state.doctorReviews);
+  const getDoctorReviews = useAuthStore((state) => state.getDoctorReviews);
 
   useEffect(() => {
     if (doctorId) {
       getDoctorReviews(doctorId);
     }
-  }, [doctorId, getDoctorReviews]);
+  }, [doctorId]); // ✅ only depend on doctorId
 
   return (
     <div>
@@ -17,9 +18,7 @@ const DoctorReviews = ({ doctorId }) => {
         Patient Reviews
       </h3>
 
-      {isLoadingReviews ? (
-        <p className="text-gray-500">Loading reviews...</p>
-      ) : doctorReviews.length === 0 ? (
+      {doctorReviews.length === 0 ? (
         <p className="text-gray-500">No reviews yet.</p>
       ) : (
         <div className="space-y-4">

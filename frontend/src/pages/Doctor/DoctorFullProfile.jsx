@@ -1,7 +1,6 @@
 import React from "react";
 import DoctorDetails from "./components/DoctorDetails.jsx";
 import DoctorReviews from "./components/DoctorReviews.jsx";
-import DoctorSkeleton from "./components/DoctorSkeleton.jsx";
 import { useAuthStore } from "../../store/AuthStore.js";
 
 const DoctorFullProfile = () => {
@@ -15,7 +14,7 @@ const DoctorFullProfile = () => {
     <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <DoctorDetails doctor={user} />
-        <DoctorReviews doctorId={user._id} />
+      
       </div>
     </div>
   );

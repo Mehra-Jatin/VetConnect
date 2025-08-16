@@ -23,7 +23,6 @@ const DoctorPublicProfile = () => {
         const fetchedDoctor = await getDoctorById(id);
         setDoctor(fetchedDoctor);
       } catch (err) {
-        console.error("Failed to fetch doctor profile:", err);
         setDoctor(null);
       } finally {
         setLoading(false);

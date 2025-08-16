@@ -67,9 +67,6 @@ export default function DoctorSetting() {
         setImageFile(null);
         setEditImageMode(false);
         await checkAuth();
-        alert("Profile image updated!");
-      } else {
-        alert(res?.message || "Failed to update image");
       }
       setLoadingImage(false);
     };
@@ -82,10 +79,7 @@ export default function DoctorSetting() {
     const res = await updateDoctorProfile(formData);
     if (res?.success) {
       await checkAuth();
-      alert("Profile updated successfully!");
-    } else {
-      alert(res?.message || "Failed to update profile");
-    }
+    } 
     setLoadingProfile(false);
   };
 
@@ -97,7 +91,6 @@ const handleAvailabilityChange = async (checked) => {
   const res = await setDoctorAvailability(checked);
 
   if (!res?.success) {
-    alert(res?.message || "Failed to update availability");
     setIsAvailable(prevValue); // Revert back if failed
   } else {
     await checkAuth(); // Refresh data if successful
@@ -112,23 +105,16 @@ const handleDescriptionUpdate = async () => {
   const res = await updateDoctorDescription(description);
   if (res?.success) {
       await checkAuth();
-      alert("Description updated successfully!");
-    } else {
-      alert(res?.message || "Failed to update description");
-    }
+    } 
     setLoadingDescription(false);
   };
 
   // Delete account
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure you want to delete your account?")) return;
     setLoadingDelete(true);
     const res = await deleteDoctorAccount();
     if (res?.success) {
-      alert("Account deleted successfully!");
       window.location.href = "/";
-    } else {
-      alert(res?.message || "Failed to delete account");
     }
     setLoadingDelete(false);
   };
