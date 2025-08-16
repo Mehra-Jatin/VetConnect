@@ -1,6 +1,6 @@
 🐾 VetConnect
 
-Vet# 🐾 VetConnect
+# 🐾 VetConnect
 
 VetConnect is a veterinary consultation platform that allows users to connect with veterinarians online for seamless consultations, real-time chat, secure payments, and appointment management.
 
