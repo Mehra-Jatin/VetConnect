@@ -27,6 +27,20 @@ VetConnect is a veterinary consultation platform that allows users to connect wi
 
 ---
 
+## 🧪 Test Credentials
+
+You can use the following credentials to explore the platform:  
+
+### 👩‍⚕️ Doctor Account
+- **Email**: dr.johndoe@example.com  
+- **Password**: StrongPass@123  
+
+### 🐾 Patient Account
+- **Email**: jane.smith@example.com  
+- **Password**: StrongPass@123   
+
+---
+
 ## ✨ Features
 
 - 👩‍⚕️ **Veterinary Consultation** – Book and manage appointments with vets.  
